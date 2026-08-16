@@ -4,25 +4,27 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title id="page-title">CODE AI STUDIO | استودیو هوش مصنوعی کد</title>
-  <!-- فونت Vazirmatn از Google Fonts -->
+  <!-- فونت Vazirmatn -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700;900&display=swap" rel="stylesheet">
-  <!-- آیکون‌های FontAwesome -->
+  <!-- آیکون‌ها -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- کتابخانه ارسال ایمیل واقعی EmailJS -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="dark-theme">
+<body class="dark-theme locked">
 
-  <!-- پس‌زمینه متحرک شیشه‌ای -->
+  <!-- پس‌زمینه شیشه‌ای -->
   <div class="glass-bg">
     <div class="blob blob-1"></div>
     <div class="blob blob-2"></div>
     <div class="blob blob-3"></div>
   </div>
 
-  <!-- هدر شیشه‌ای با قابلیت لوگوی داینامیک -->
-  <header class="glass-header">
+  <!-- هدر (فقط پس از لاگین نمایش داده می‌شود) -->
+  <header class="glass-header hidden" id="main-header">
     <div class="header-right">
       <button id="menu-btn" class="icon-btn"><i class="fa-solid fa-bars"></i></button>
       <div class="brand-container">
@@ -58,11 +60,15 @@
   <!-- کانتینر اصلی -->
   <main class="main-container">
 
-    <!-- ۱. فرم‌های احراز هویت -->
-    <section id="auth-section" class="page-section glass-card active">
+    <!-- بخش ورود و ثبت‌نام -->
+    <section id="auth-section" class="page-section glass-card">
+      
       <!-- ورود -->
       <div id="login-box" class="auth-box">
-        <h2>ورود به حساب کاربری</h2>
+        <div class="auth-brand">
+          <h2 id="auth-site-title">CODE AI STUDIO</h2>
+          <p>لطفاً برای استفاده از هوش مصنوعی وارد شوید</p>
+        </div>
         <form id="login-form">
           <div class="input-group">
             <i class="fa-solid fa-envelope"></i>
@@ -75,61 +81,65 @@
           <div class="auth-actions">
             <a href="#" id="go-to-reset">بازیابی رمز عبور</a>
           </div>
-          <button type="submit" class="btn-primary">ورود</button>
-          <p class="auth-switch">حساب ندارید؟ <a href="#" id="go-to-register">ثبت‌نام کنید</a></p>
+          <button type="submit" class="btn-primary">ورود به سامانه</button>
+          <p class="auth-switch">حساب کاربری ندارید؟ <a href="#" id="go-to-register">ثبت‌نام و دریافت ۱۵ اعتبار</a></p>
         </form>
       </div>
 
-      <!-- ثبت‌نام با کد تایید ایمیلی و تایمر ۶۰ ثانیه -->
+      <!-- ثبت‌نام با ایمیل و کد تایید واقعی -->
       <div id="register-box" class="auth-box hidden">
-        <h2>ثبت‌نام در سامانه</h2>
+        <h2>ثبت‌نام در استودیو</h2>
+        <p class="subtitle">کد تایید مستقیماً به ایمیل شما ارسال خواهد شد.</p>
         <form id="register-form">
           <div class="input-group">
             <i class="fa-solid fa-user"></i>
-            <input type="text" id="reg-name" placeholder="نام و نام خانوادگی" required>
+            <input type="text" id="reg-name" placeholder="نام شما" required>
           </div>
           <div class="input-group">
             <i class="fa-solid fa-envelope"></i>
-            <input type="email" id="reg-email" placeholder="ایمیل معتبر" required>
+            <input type="email" id="reg-email" placeholder="ایمیل معتبر (مثال: gmail)" required>
           </div>
           <div class="input-group">
             <i class="fa-solid fa-lock"></i>
-            <input type="password" id="reg-password" placeholder="رمز عبور" required>
+            <input type="password" id="reg-password" placeholder="رمز عبور دلخواه" required>
           </div>
-          <button type="button" id="send-otp-btn" class="btn-primary">ارسال کد تأیید به ایمیل</button>
+          
+          <button type="button" id="send-otp-btn" class="btn-primary">
+            <i class="fa-solid fa-paper-plane"></i> ارسال کد به ایمیل
+          </button>
 
           <div id="otp-container" class="hidden">
             <div class="input-group">
               <i class="fa-solid fa-key"></i>
-              <input type="text" id="otp-input" placeholder="کد ۶ رقمی ارسال شده">
+              <input type="text" id="otp-input" placeholder="کد ۶ رقمی دریافتی از ایمیل">
             </div>
             <div class="timer-box">
-              <span id="timer-text">امکان ارسال مجدد تا: <b id="countdown">60</b> ثانیه</span>
+              <span id="timer-text">ارسال مجدد تا: <b id="countdown">60</b> ثانیه</span>
               <button type="button" id="resend-otp-btn" class="btn-link" disabled>ارسال مجدد کد</button>
             </div>
-            <button type="submit" class="btn-success">تکمیل ثبت‌نام و ورود</button>
+            <button type="submit" class="btn-success">تایید و دریافت ۱۵ اعتبار</button>
           </div>
 
-          <p class="auth-switch">حساب دارید؟ <a href="#" id="back-to-login">ورود</a></p>
+          <p class="auth-switch">قبلاً ثبت‌نام کرده‌اید؟ <a href="#" id="back-to-login">ورود</a></p>
         </form>
       </div>
 
       <!-- بازیابی رمز عبور -->
       <div id="reset-box" class="auth-box hidden">
         <h2>بازیابی رمز عبور</h2>
-        <p class="subtitle">ایمیل خود را وارد کنید تا لینک تغییر رمز برای شما ارسال شود.</p>
+        <p class="subtitle">ایمیل خود را وارد کنید تا لینک ریست رمز ارسال شود.</p>
         <form id="reset-form">
           <div class="input-group">
             <i class="fa-solid fa-envelope"></i>
-            <input type="email" id="reset-email" placeholder="ایمیل ثبت‌شده" required>
+            <input type="email" id="reset-email" placeholder="ایمیل حساب کاربری" required>
           </div>
-          <button type="submit" class="btn-primary">ارسال لینک بازیابی</button>
-          <p class="auth-switch"><a href="#" id="back-from-reset">بازگشت به صفحه ورود</a></p>
+          <button type="submit" class="btn-primary">ارسال به ایمیل</button>
+          <p class="auth-switch"><a href="#" id="back-from-reset">بازگشت به ورود</a></p>
         </form>
       </div>
     </section>
 
-    <!-- ۲. صفحه خانه -->
+    <!-- صفحه خانه -->
     <section id="home-page" class="page-section hidden">
       <div class="glass-card welcome-card">
         <h2 id="welcome-text">سلاممممم کاربر عزیز !</h2>
@@ -142,7 +152,7 @@
           </div>
           <div class="stat-item">
             <i class="fa-solid fa-clock-rotate-left"></i>
-            <span>تمدید خودکار:</span>
+            <span>شارژ روزانه:</span>
             <strong>هر روز ساعت ۰۰:۰۰</strong>
           </div>
         </div>
@@ -153,33 +163,33 @@
       </div>
     </section>
 
-    <!-- ۳. ساخت کد با AI -->
+    <!-- ساخت کد با هوش مصنوعی واقعی -->
     <section id="ai-page" class="page-section hidden">
       <div class="glass-card chat-wrapper">
         <div class="chat-header">
           <div class="ai-info">
             <div class="ai-avatar"><i class="fa-solid fa-robot"></i></div>
             <div>
-              <h3 id="ai-assistant-title">دستیار هوشمند CODE AI STUDIO</h3>
-              <small>هر درخواست = ۳ اعتبار</small>
+              <h3 id="ai-assistant-title">دستیار فوق هوشمند CODE AI STUDIO</h3>
+              <small>تولید کدهای واقعی، حرفه‌ای و کامل | هر درخواست = ۳ اعتبار</small>
             </div>
           </div>
         </div>
         
         <div class="chat-messages" id="ai-chat-box">
           <div class="msg bot-msg">
-            سلام! چه سایتی یا چه کدی برات بنویسم؟ ایده، امکانات یا زبان مد نظرت رو بگو تا به بهترین شکل برات کد بزنم!
+            سلام! چه کدی یا چه سایتی برات بنویسم؟ ایده، زبان برنامه‌نویسی یا امکاناتی که می‌خوای رو بگو تا کامل برات کدنویسی کنم!
           </div>
         </div>
 
         <div class="chat-input-box">
-          <textarea id="ai-prompt-input" rows="2" placeholder="توضیح دهید چه کدی می‌خواهید..."></textarea>
+          <textarea id="ai-prompt-input" rows="2" placeholder="مثال: یک صفحه لاگین ریسپانسیو با جاوااسکریپت و انیمیشن برام بنویس..."></textarea>
           <button id="send-ai-btn" class="send-btn"><i class="fa-solid fa-paper-plane"></i></button>
         </div>
       </div>
     </section>
 
-    <!-- ۴. صفحه تیکت تلگرامی -->
+    <!-- تیکت تلگرامی -->
     <section id="ticket-page" class="page-section hidden">
       <div class="glass-card telegram-wrapper">
         <div class="tg-header">
@@ -207,7 +217,7 @@
       </div>
     </section>
 
-    <!-- ۵. صفحه پروفایل -->
+    <!-- پروفایل کاربر -->
     <section id="profile-page" class="page-section hidden">
       <div class="glass-card profile-card">
         <div class="avatar-large"><i class="fa-solid fa-user-astronaut"></i></div>
@@ -216,13 +226,13 @@
         <hr class="divider">
         <div class="prof-details">
           <div class="detail-row"><span>وضعیت حساب:</span> <strong class="badge-active" id="prof-status">فعال</strong></div>
-          <div class="detail-row"><span>اعتبار فعلی:</span> <strong id="prof-credit">۱۵</strong></div>
-          <div class="detail-row"><span>سطح کاربری:</span> <strong id="prof-role">کاربر عادی</strong></div>
+          <div class="detail-row"><span>اعتبار باقی‌مانده:</span> <strong id="prof-credit">۱۵</strong></div>
+          <div class="detail-row"><span>سطح دسترسی:</span> <strong id="prof-role">کاربر عادی</strong></div>
         </div>
       </div>
     </section>
 
-    <!-- ۶. پنل مدیریت سازنده (سینا) با تنظیمات لوگو و نام سایت -->
+    <!-- پنل مدیریت سینا -->
     <section id="admin-page" class="page-section hidden">
       <div class="glass-card admin-dashboard">
         <div class="admin-top">
@@ -231,13 +241,13 @@
         </div>
 
         <div class="admin-tabs">
-          <button class="tab-btn active" data-tab="admin-users"><i class="fa-solid fa-users"></i> لیست کاربران</button>
-          <button class="tab-btn" data-tab="admin-chats"><i class="fa-solid fa-robot"></i> لیست گفتگوها</button>
-          <button class="tab-btn" data-tab="admin-tickets"><i class="fa-solid fa-ticket"></i> لیست تیکت‌ها</button>
-          <button class="tab-btn" data-tab="admin-settings"><i class="fa-solid fa-gear"></i> تنظیمات سایت و لوگو</button>
+          <button class="tab-btn active" data-tab="admin-users"><i class="fa-solid fa-users"></i> کاربران</button>
+          <button class="tab-btn" data-tab="admin-chats"><i class="fa-solid fa-robot"></i> گفتگوهای AI</button>
+          <button class="tab-btn" data-tab="admin-tickets"><i class="fa-solid fa-ticket"></i> تیکت‌ها</button>
+          <button class="tab-btn" data-tab="admin-settings"><i class="fa-solid fa-gear"></i> تنظیمات سایت، لوگو و ایمیل</button>
         </div>
 
-        <!-- تب لیست کاربران -->
+        <!-- کاربران -->
         <div id="admin-users" class="tab-content active">
           <div class="table-responsive">
             <table class="glass-table">
@@ -247,7 +257,6 @@
                   <th>ایمیل</th>
                   <th>اعتبار</th>
                   <th>وضعیت</th>
-                  <th>نقش</th>
                   <th>عملیات</th>
                 </tr>
               </thead>
@@ -256,33 +265,50 @@
           </div>
         </div>
 
-        <!-- تب گفتگوها -->
+        <!-- گفتگوها -->
         <div id="admin-chats" class="tab-content hidden">
           <div id="admin-ai-logs" class="logs-container"></div>
         </div>
 
-        <!-- تب تیکت‌ها -->
+        <!-- تیکت‌ها -->
         <div id="admin-tickets" class="tab-content hidden">
           <div id="admin-ticket-list" class="tickets-list"></div>
         </div>
 
-        <!-- تب تنظیمات سایت و لوگو -->
+        <!-- تنظیمات سایت و سرویس ایمیل -->
         <div id="admin-settings" class="tab-content hidden">
           <div class="settings-box">
-            <h3>شخصی‌سازی ظاهر سایت</h3>
+            <h3>تنظیمات ظاهر</h3>
             <div class="input-group">
               <label>نام سایت:</label>
-              <input type="text" id="setting-site-name" placeholder="مثال: CODE AI STUDIO">
+              <input type="text" id="setting-site-name" placeholder="CODE AI STUDIO">
             </div>
             <div class="input-group">
-              <label>آدرس مستقیم تصویر لوگو (URL):</label>
+              <label>آدرس مستقیم تصویر لوگو:</label>
               <input type="url" id="setting-logo-url" placeholder="https://example.com/logo.png">
             </div>
             <div class="preview-logo-box">
               <span>پیش‌نمایش لوگو:</span>
-              <img id="setting-logo-preview" src="" alt="پیش‌نمایش لوگو" class="hidden">
+              <img id="setting-logo-preview" src="" alt="لوگو" class="hidden">
             </div>
-            <button id="save-settings-btn" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> ذخیره تغییرات سایت</button>
+
+            <hr style="margin: 1.5rem 0; border: 1px solid var(--glass-border);">
+            
+            <h3>تنظیمات کلیدهای EmailJS (برای ارسال واقعی ایمیل)</h3>
+            <div class="input-group">
+              <label>Public Key:</label>
+              <input type="text" id="setting-emailjs-public" placeholder="مثال: user_xxxxxxxx">
+            </div>
+            <div class="input-group">
+              <label>Service ID:</label>
+              <input type="text" id="setting-emailjs-service" placeholder="مثال: service_xxxxxx">
+            </div>
+            <div class="input-group">
+              <label>Template ID:</label>
+              <input type="text" id="setting-emailjs-template" placeholder="مثال: template_xxxxxx">
+            </div>
+
+            <button id="save-settings-btn" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> ذخیره کلیه تنظیمات</button>
           </div>
         </div>
 
