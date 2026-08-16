@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title id="page-title">CODE AI STUDIO | استودیو هوش مصنوعی کد</title>
+  <!-- فونت Vazirmatn از Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+  <!-- آیکون‌های FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="dark-theme">
+
+  <!-- پس‌زمینه متحرک شیشه‌ای -->
+  <div class="glass-bg">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+  </div>
+
+  <!-- هدر شیشه‌ای با قابلیت لوگوی داینامیک -->
+  <header class="glass-header">
+    <div class="header-right">
+      <button id="menu-btn" class="icon-btn"><i class="fa-solid fa-bars"></i></button>
+      <div class="brand-container">
+        <img id="site-logo-img" class="site-logo hidden" src="" alt="لوگو">
+        <h1 class="logo" id="site-name-display">CODE AI <span>STUDIO</span></h1>
+      </div>
+    </div>
+    <div class="header-left">
+      <div class="credit-badge" id="credit-badge" title="اعتبار باقی‌مانده">
+        <i class="fa-solid fa-bolt"></i> <span id="user-credits">۱۵</span> اعتبار
+      </div>
+      <button id="theme-toggle" class="icon-btn" title="تغییر پوسته"><i class="fa-solid fa-sun"></i></button>
+    </div>
+  </header>
+
+  <!-- سایدبار منوی همبرگری -->
+  <aside id="sidebar" class="sidebar glass-card">
+    <div class="sidebar-header">
+      <h3>منوی دسترسی</h3>
+      <button id="close-menu" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-page="home-page"><i class="fa-solid fa-house"></i> خانه</button>
+      <button class="nav-item" data-page="ai-page"><i class="fa-solid fa-wand-magic-sparkles"></i> ساخت کد با هوش مصنوعی</button>
+      <button class="nav-item" data-page="ticket-page"><i class="fa-solid fa-headset"></i> تیکت و پشتیبانی</button>
+      <button class="nav-item" data-page="profile-page"><i class="fa-solid fa-user"></i> پروفایل</button>
+      <button class="nav-item admin-only" id="admin-nav-item" data-page="admin-page"><i class="fa-solid fa-shield-halved"></i> پنل مدیریت</button>
+      <button class="nav-item logout-btn" id="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> خروج از حساب</button>
+    </nav>
+  </aside>
+  <div id="overlay" class="overlay"></div>
+
+  <!-- کانتینر اصلی -->
+  <main class="main-container">
+
+    <!-- ۱. فرم‌های احراز هویت -->
+    <section id="auth-section" class="page-section glass-card active">
+      <!-- ورود -->
+      <div id="login-box" class="auth-box">
+        <h2>ورود به حساب کاربری</h2>
+        <form id="login-form">
+          <div class="input-group">
+            <i class="fa-solid fa-envelope"></i>
+            <input type="email" id="login-email" placeholder="ایمیل خود را وارد کنید" required>
+          </div>
+          <div class="input-group">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" id="login-password" placeholder="رمز عبور" required>
+          </div>
+          <div class="auth-actions">
+            <a href="#" id="go-to-reset">بازیابی رمز عبور</a>
+          </div>
+          <button type="submit" class="btn-primary">ورود</button>
+          <p class="auth-switch">حساب ندارید؟ <a href="#" id="go-to-register">ثبت‌نام کنید</a></p>
+        </form>
+      </div>
+
+      <!-- ثبت‌نام با کد تایید ایمیلی و تایمر ۶۰ ثانیه -->
+      <div id="register-box" class="auth-box hidden">
+        <h2>ثبت‌نام در سامانه</h2>
+        <form id="register-form">
+          <div class="input-group">
+            <i class="fa-solid fa-user"></i>
+            <input type="text" id="reg-name" placeholder="نام و نام خانوادگی" required>
+          </div>
+          <div class="input-group">
+            <i class="fa-solid fa-envelope"></i>
+            <input type="email" id="reg-email" placeholder="ایمیل معتبر" required>
+          </div>
+          <div class="input-group">
+            <i class="fa-solid fa-lock"></i>
+            <input type="password" id="reg-password" placeholder="رمز عبور" required>
+          </div>
+          <button type="button" id="send-otp-btn" class="btn-primary">ارسال کد تأیید به ایمیل</button>
+
+          <div id="otp-container" class="hidden">
+            <div class="input-group">
+              <i class="fa-solid fa-key"></i>
+              <input type="text" id="otp-input" placeholder="کد ۶ رقمی ارسال شده">
+            </div>
+            <div class="timer-box">
+              <span id="timer-text">امکان ارسال مجدد تا: <b id="countdown">60</b> ثانیه</span>
+              <button type="button" id="resend-otp-btn" class="btn-link" disabled>ارسال مجدد کد</button>
+            </div>
+            <button type="submit" class="btn-success">تکمیل ثبت‌نام و ورود</button>
+          </div>
+
+          <p class="auth-switch">حساب دارید؟ <a href="#" id="back-to-login">ورود</a></p>
+        </form>
+      </div>
+
+      <!-- بازیابی رمز عبور -->
+      <div id="reset-box" class="auth-box hidden">
+        <h2>بازیابی رمز عبور</h2>
+        <p class="subtitle">ایمیل خود را وارد کنید تا لینک تغییر رمز برای شما ارسال شود.</p>
+        <form id="reset-form">
+          <div class="input-group">
+            <i class="fa-solid fa-envelope"></i>
+            <input type="email" id="reset-email" placeholder="ایمیل ثبت‌شده" required>
+          </div>
+          <button type="submit" class="btn-primary">ارسال لینک بازیابی</button>
+          <p class="auth-switch"><a href="#" id="back-from-reset">بازگشت به صفحه ورود</a></p>
+        </form>
+      </div>
+    </section>
+
+    <!-- ۲. صفحه خانه -->
+    <section id="home-page" class="page-section hidden">
+      <div class="glass-card welcome-card">
+        <h2 id="welcome-text">سلاممممم کاربر عزیز !</h2>
+        <p class="hero-sub">امروز قراره چه کد هایی بسازیم!؟</p>
+        <div class="hero-stats">
+          <div class="stat-item">
+            <i class="fa-solid fa-bolt"></i>
+            <span>اعتبار امروز:</span>
+            <strong id="home-credits">۱۵</strong>
+          </div>
+          <div class="stat-item">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            <span>تمدید خودکار:</span>
+            <strong>هر روز ساعت ۰۰:۰۰</strong>
+          </div>
+        </div>
+        <div class="quick-actions">
+          <button class="btn-primary" onclick="navigateTo('ai-page')"><i class="fa-solid fa-code"></i> شروع کدنویسی با هوش مصنوعی</button>
+          <button class="btn-secondary" onclick="navigateTo('ticket-page')"><i class="fa-solid fa-comments"></i> ارتباط با سازنده</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ۳. ساخت کد با AI -->
+    <section id="ai-page" class="page-section hidden">
+      <div class="glass-card chat-wrapper">
+        <div class="chat-header">
+          <div class="ai-info">
+            <div class="ai-avatar"><i class="fa-solid fa-robot"></i></div>
+            <div>
+              <h3 id="ai-assistant-title">دستیار هوشمند CODE AI STUDIO</h3>
+              <small>هر درخواست = ۳ اعتبار</small>
+            </div>
+          </div>
+        </div>
+        
+        <div class="chat-messages" id="ai-chat-box">
+          <div class="msg bot-msg">
+            سلام! چه سایتی یا چه کدی برات بنویسم؟ ایده، امکانات یا زبان مد نظرت رو بگو تا به بهترین شکل برات کد بزنم!
+          </div>
+        </div>
+
+        <div class="chat-input-box">
+          <textarea id="ai-prompt-input" rows="2" placeholder="توضیح دهید چه کدی می‌خواهید..."></textarea>
+          <button id="send-ai-btn" class="send-btn"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ۴. صفحه تیکت تلگرامی -->
+    <section id="ticket-page" class="page-section hidden">
+      <div class="glass-card telegram-wrapper">
+        <div class="tg-header">
+          <div class="tg-user-status">
+            <div class="tg-avatar">S</div>
+            <div>
+              <h4>سازنده استودیو (Sina)</h4>
+              <span class="tg-online"><i class="fa-solid fa-circle"></i> آنلاین</span>
+            </div>
+          </div>
+          <button id="new-ticket-btn" class="btn-sm"><i class="fa-solid fa-plus"></i> تیکت جدید</button>
+        </div>
+
+        <div class="tg-chat-area" id="ticket-chat-box">
+          <div class="tg-bubble tg-received">
+            سلام! چطور می‌تونم کمکتون کنم؟ اگر درخواست افزایش اعتبار یا آنلاین کردن سایتتون رو دارید در خدمتم.
+            <span class="tg-time">12:00</span>
+          </div>
+        </div>
+
+        <div class="tg-input-bar">
+          <input type="text" id="ticket-input" placeholder="پیام خود را بنویسید...">
+          <button id="send-ticket-btn"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ۵. صفحه پروفایل -->
+    <section id="profile-page" class="page-section hidden">
+      <div class="glass-card profile-card">
+        <div class="avatar-large"><i class="fa-solid fa-user-astronaut"></i></div>
+        <h3 id="prof-name">نام کاربر</h3>
+        <p id="prof-email">user@example.com</p>
+        <hr class="divider">
+        <div class="prof-details">
+          <div class="detail-row"><span>وضعیت حساب:</span> <strong class="badge-active" id="prof-status">فعال</strong></div>
+          <div class="detail-row"><span>اعتبار فعلی:</span> <strong id="prof-credit">۱۵</strong></div>
+          <div class="detail-row"><span>سطح کاربری:</span> <strong id="prof-role">کاربر عادی</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ۶. پنل مدیریت سازنده (سینا) با تنظیمات لوگو و نام سایت -->
+    <section id="admin-page" class="page-section hidden">
+      <div class="glass-card admin-dashboard">
+        <div class="admin-top">
+          <h2><i class="fa-solid fa-shield-halved"></i> پنل مدیریت سازنده</h2>
+          <span class="badge-admin">مدیر کل: sina.ai.pani.panda@gmail.com</span>
+        </div>
+
+        <div class="admin-tabs">
+          <button class="tab-btn active" data-tab="admin-users"><i class="fa-solid fa-users"></i> لیست کاربران</button>
+          <button class="tab-btn" data-tab="admin-chats"><i class="fa-solid fa-robot"></i> لیست گفتگوها</button>
+          <button class="tab-btn" data-tab="admin-tickets"><i class="fa-solid fa-ticket"></i> لیست تیکت‌ها</button>
+          <button class="tab-btn" data-tab="admin-settings"><i class="fa-solid fa-gear"></i> تنظیمات سایت و لوگو</button>
+        </div>
+
+        <!-- تب لیست کاربران -->
+        <div id="admin-users" class="tab-content active">
+          <div class="table-responsive">
+            <table class="glass-table">
+              <thead>
+                <tr>
+                  <th>نام</th>
+                  <th>ایمیل</th>
+                  <th>اعتبار</th>
+                  <th>وضعیت</th>
+                  <th>نقش</th>
+                  <th>عملیات</th>
+                </tr>
+              </thead>
+              <tbody id="users-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- تب گفتگوها -->
+        <div id="admin-chats" class="tab-content hidden">
+          <div id="admin-ai-logs" class="logs-container"></div>
+        </div>
+
+        <!-- تب تیکت‌ها -->
+        <div id="admin-tickets" class="tab-content hidden">
+          <div id="admin-ticket-list" class="tickets-list"></div>
+        </div>
+
+        <!-- تب تنظیمات سایت و لوگو -->
+        <div id="admin-settings" class="tab-content hidden">
+          <div class="settings-box">
+            <h3>شخصی‌سازی ظاهر سایت</h3>
+            <div class="input-group">
+              <label>نام سایت:</label>
+              <input type="text" id="setting-site-name" placeholder="مثال: CODE AI STUDIO">
+            </div>
+            <div class="input-group">
+              <label>آدرس مستقیم تصویر لوگو (URL):</label>
+              <input type="url" id="setting-logo-url" placeholder="https://example.com/logo.png">
+            </div>
+            <div class="preview-logo-box">
+              <span>پیش‌نمایش لوگو:</span>
+              <img id="setting-logo-preview" src="" alt="پیش‌نمایش لوگو" class="hidden">
+            </div>
+            <button id="save-settings-btn" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> ذخیره تغییرات سایت</button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
