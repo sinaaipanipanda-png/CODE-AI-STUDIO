@@ -1,6 +1,6 @@
 /**
  * CODE AI STUDIO Core Engine
- * سازنده: سینا (sina.ai.pani.panda@gmail.com / sina13950)
+ * مدیریت کل و سازنده: سینا (sina.ai.pani.panda@gmail.com / sina13950)
  */
 
 const ADMIN_EMAIL = "sina.ai.pani.panda@gmail.com";
@@ -9,6 +9,7 @@ const ADMIN_PASS = "sina13950";
 let siteSettings = JSON.parse(localStorage.getItem("code_ai_settings")) || {
   name: "CODE AI STUDIO",
   logoUrl: "",
+  brevoApiKey: "",
   emailjsPublicKey: "",
   emailjsServiceId: "",
   emailjsTemplateId: ""
@@ -21,7 +22,7 @@ let systemUsers = JSON.parse(localStorage.getItem("code_ai_users_db")) || [
 let systemTickets = JSON.parse(localStorage.getItem("code_ai_tickets_db")) || [];
 let aiConversations = JSON.parse(localStorage.getItem("code_ai_ai_db")) || [];
 
-// ذخیره‌سازی داده‌ها
+// ذخیره‌سازی داده‌ها در حافظه مرورگر
 function syncStorage() {
   localStorage.setItem("code_ai_settings", JSON.stringify(siteSettings));
   localStorage.setItem("code_ai_users_db", JSON.stringify(systemUsers));
@@ -32,7 +33,7 @@ function syncStorage() {
   }
 }
 
-// پیام‌های Toast
+// نمایش پیام‌های Toast
 function showToast(message, type = "info") {
   const toast = document.getElementById("toast");
   toast.innerText = message;
@@ -43,7 +44,7 @@ function showToast(message, type = "info") {
   setTimeout(() => toast.className = "toast", 4500);
 }
 
-// تم دارک / لایت
+// تغییر تم تاریک و روشن
 const themeToggle = document.getElementById("theme-toggle");
 themeToggle.addEventListener("click", () => {
   document.body.classList.toggle("light-theme");
@@ -65,7 +66,7 @@ menuBtn.addEventListener("click", () => toggleSidebar(true));
 closeMenu.addEventListener("click", () => toggleSidebar(false));
 overlay.addEventListener("click", () => toggleSidebar(false));
 
-// ناوبری و گارد ورود
+// سیستم هدایت و قفل صفحات
 function navigateTo(pageId) {
   if (!currentUser && pageId !== "auth-section") {
     showToast("لطفاً ابتدا وارد حساب خود شوید!", "error");
@@ -88,7 +89,7 @@ document.querySelectorAll(".nav-item[data-page]").forEach(btn => {
   btn.addEventListener("click", () => navigateTo(btn.dataset.page));
 });
 
-// اعمال تنظیمات لوگو و نام سایت
+// اعمال تنظیمات نام سایت و لوگو
 function applySiteSettings() {
   document.getElementById("page-title").innerText = `${siteSettings.name} | استودیو هوش مصنوعی`;
   document.getElementById("auth-site-title").innerText = siteSettings.name;
@@ -103,13 +104,12 @@ function applySiteSettings() {
     logoImg.classList.add("hidden");
   }
 
-  // راه‌اندازی EmailJS در صورت وجود کلید
   if (siteSettings.emailjsPublicKey && window.emailjs) {
     emailjs.init(siteSettings.emailjsPublicKey);
   }
 }
 
-// ریست اعتبار روزانه در ۰۰:۰۰
+// ریست خودکار ۱۵ اعتبار روزانه در ساعت ۰۰:۰۰
 function checkDailyCreditReset() {
   if (!currentUser) return;
   const today = new Date().toDateString();
@@ -124,7 +124,7 @@ function checkDailyCreditReset() {
 }
 
 /* ==========================================================
-   احراز هویت و ارسال واقعی ایمیل (با پشتیبانی از EmailJS)
+   احراز هویت و ارسال واقعی کد به ایمیل با تایمر ۶۰ ثانیه
    ========================================================== */
 let generatedOTP = null;
 let otpTimer = null;
@@ -168,7 +168,7 @@ function startOTPTimer() {
   }, 1000);
 }
 
-// تابع ارسال واقعی ایمیل
+// تابع ارسال ایمیل (پشتیبانی هوشمند از Brevo و EmailJS)
 async function sendRealEmailOTP() {
   const email = document.getElementById("reg-email").value.trim();
   const name = document.getElementById("reg-name").value.trim() || "کاربر عزیز";
@@ -179,10 +179,45 @@ async function sendRealEmailOTP() {
   }
 
   generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
-  showToast("در حال ارسال کد به ایمیل شما...", "info");
+  showToast("در حال ارسال کد به ایمیل...", "info");
 
-  // بررسی اتصال EmailJS
-  if (siteSettings.emailjsPublicKey && siteSettings.emailjsServiceId && siteSettings.emailjsTemplateId && window.emailjs) {
+  let sent = false;
+
+  // ۱. ارسال با Brevo (در صورت وجود کلید)
+  if (siteSettings.brevoApiKey) {
+    try {
+      const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+        method: "POST",
+        headers: {
+          "accept": "application/json",
+          "api-key": siteSettings.brevoApiKey,
+          "content-type": "application/json"
+        },
+        body: JSON.stringify({
+          sender: { name: siteSettings.name, email: ADMIN_EMAIL },
+          to: [{ email: email, name: name }],
+          subject: `کد تایید ورود به ${siteSettings.name}`,
+          htmlContent: `
+            <div style="font-family: Tahoma, sans-serif; direction: rtl; text-align: right; padding: 20px; background-color: #0f172a; color: #ffffff; border-radius: 12px;">
+              <h2 style="color: #8b5cf6;">استودیو هوش مصنوعی ${siteSettings.name}</h2>
+              <p>سلام <b>${name}</b> عزیز، خوش آمدید!</p>
+              <p>کد تایید ۶ رقمی شما برای ورود و دریافت ۱۵ اعتبار رایگان:</p>
+              <div style="font-size: 30px; font-weight: bold; letter-spacing: 6px; color: #10b981; margin: 15px 0;">
+                ${generatedOTP}
+              </div>
+              <p style="color: #94a3b8; font-size: 12px;">این کد تا چند دقیقه آینده دارای اعتبار است.</p>
+            </div>
+          `
+        })
+      });
+      if (response.ok) sent = true;
+    } catch (e) {
+      console.error("Brevo sending error:", e);
+    }
+  }
+
+  // ۲. ارسال با EmailJS (در صورت عدم وجود Brevo)
+  if (!sent && siteSettings.emailjsPublicKey && siteSettings.emailjsServiceId && siteSettings.emailjsTemplateId && window.emailjs) {
     try {
       await emailjs.send(siteSettings.emailjsServiceId, siteSettings.emailjsTemplateId, {
         to_email: email,
@@ -190,14 +225,16 @@ async function sendRealEmailOTP() {
         passcode: generatedOTP,
         site_name: siteSettings.name
       });
-      showToast(`کد تایید با موفقیت به ایمیل ${email} ارسال شد. صندوق ایمیل (و هرزنامه) خود را چک کنید.`, "success");
-    } catch (err) {
-      console.error("EmailJS Error:", err);
-      showToast(`خطا در ارتباط با سرور ایمیل. کد موقت جهت تست: ${generatedOTP}`, "error");
+      sent = true;
+    } catch (e) {
+      console.error("EmailJS sending error:", e);
     }
+  }
+
+  if (sent) {
+    showToast(`کد تایید به ایمیل ${email} ارسال شد. صندوق دریافت و هرزنامه را چک کنید.`, "success");
   } else {
-    // در صورت عدم تنظیم کلیدها توسط ادمین
-    showToast(`کد به ایمیل ارسال گردید (کد: ${generatedOTP}) - جهت ارسال واقعی کلیدهای EmailJS را در پنل ادمین ثبت کنید.`, "success");
+    showToast(`کد تایید آماده شد: [ ${generatedOTP} ] (برای ارسال واقعی، کلید Brevo را در پنل ادمین ثبت کنید)`, "success");
   }
 
   document.getElementById("otp-container").classList.remove("hidden");
@@ -208,7 +245,7 @@ async function sendRealEmailOTP() {
 sendOtpBtn.addEventListener("click", sendRealEmailOTP);
 resendOtpBtn.addEventListener("click", sendRealEmailOTP);
 
-// ثبت‌نام
+// تایید کد و ثبت‌نام
 document.getElementById("register-form").addEventListener("submit", (e) => {
   e.preventDefault();
   const name = document.getElementById("reg-name").value.trim();
@@ -235,11 +272,11 @@ document.getElementById("register-form").addEventListener("submit", (e) => {
   currentUser = newUser;
   syncStorage();
 
-  showToast("ثبت‌نام با موفقیت انجام شد! ۱۵ اعتبار به حساب شما اضافه شد.", "success");
+  showToast("ثبت‌نام با موفقیت انجام شد! ۱۵ اعتبار به شما تعلق گرفت.", "success");
   loginUserSession(newUser);
 });
 
-// لاگین
+// ورود به سیستم
 document.getElementById("login-form").addEventListener("submit", (e) => {
   e.preventDefault();
   const email = document.getElementById("login-email").value.trim();
@@ -262,7 +299,7 @@ document.getElementById("login-form").addEventListener("submit", (e) => {
 });
 
 // بازیابی رمز
-document.getElementById("reset-form").addEventListener("submit", async (e) => {
+document.getElementById("reset-form").addEventListener("submit", (e) => {
   e.preventDefault();
   const email = document.getElementById("reset-email").value.trim();
   const user = systemUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
@@ -313,7 +350,7 @@ function updateUIState() {
 }
 
 /* ==========================================================
-   موتور واقعی هوش مصنوعی برای تولید کدهای تابعی و کاربردی
+   تولید کدهای واقعی با هوش مصنوعی و کسر ۳ اعتبار
    ========================================================== */
 const sendAiBtn = document.getElementById("send-ai-btn");
 const aiInput = document.getElementById("ai-prompt-input");
@@ -332,7 +369,7 @@ async function handleAiPrompt() {
   if (!promptText) return;
 
   if (currentUser.credits < 3) {
-    const errorMsg = `متاسفانه اعتبار رایگان امروز شما به اتمام رسید :(\nاگر هم روزانه اعتبار بیشتری میخواهید ، به پشتیبانی تیکت دهید :)`;
+    const errorMsg = `متاسفانه اعتبار رایگان امروز شما به اتمام رسید :(\nاگر هم روزانه اعتبر بیشتری میخواهید ، به پشتیبانی تیکت دهید :)`;
     appendAiMessage("bot", errorMsg);
     showToast("اعتبار شما کافی نیست!", "error");
     return;
@@ -349,7 +386,6 @@ async function handleAiPrompt() {
   const loadingMsg = appendAiMessage("bot", "در حال پردازش و تولید کدهای واقعی پروژه شما...");
 
   try {
-    // ارتباط با موتور هوش مصنوعی زنده
     const systemPrompt = "You are an expert full-stack developer at CODE AI STUDIO. Write clean, complete, fully functional, production-ready code with responsive design and modern styles. Always provide real and complete working code.";
     const response = await fetch(`https://text.pollinations.ai/${encodeURIComponent(promptText)}?system=${encodeURIComponent(systemPrompt)}&model=openai`);
     
@@ -357,7 +393,7 @@ async function handleAiPrompt() {
     if (response.ok) {
       generatedCode = await response.text();
     } else {
-      throw new Error("AI engine unavailable");
+      throw new Error("AI Engine offline");
     }
 
     const mandatoryClosingPitch = `\n\nاینم کد های سایت فوق العاده ات!\nاگرم میخوای تیم ما سایتت رو آنلاین کنه ( یعنی یک لینک تحویل بدیم که لینک سایتته) ، تیکت بده تا سازنده سایت ی لینک تر و تمیز تحویلت بده .`;
@@ -367,25 +403,23 @@ async function handleAiPrompt() {
     syncStorage();
 
   } catch (err) {
-    // کد نویسی تابعی پشتیبان و کامل
     const fallbackCode = `\`\`\`html
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${promptText}</title>
   <style>
     body { font-family: sans-serif; background: #0f172a; color: white; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
-    .card { background: rgba(255,255,255,0.08); padding: 2rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2); max-width: 450px; text-align: center; }
-    button { background: #8b5cf6; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer; font-weight: bold; }
+    .card { background: rgba(255,255,255,0.08); padding: 2rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2); text-align: center; }
+    button { background: #8b5cf6; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer; }
   </style>
 </head>
 <body>
   <div class="card">
-    <h2>پروژه درخواستی: ${promptText}</h2>
-    <p>کدهای عملکردی و تعاملی با موفقیت ایجاد شدند.</p>
-    <button onclick="alert('عملکرد با موفقیت اجرا شد!')">کلیک کنید</button>
+    <h2>پروژه: ${promptText}</h2>
+    <p>کدهای عملکردی با موفقیت ایجاد شدند.</p>
+    <button onclick="alert('عملکرد فعال است!')">کلیک کنید</button>
   </div>
 </body>
 </html>
@@ -460,7 +494,7 @@ newTicketBtn.addEventListener("click", () => {
 });
 
 /* ==========================================================
-   پنل مدیریت سینا
+   پنل مدیریت سینا (Sina Admin Dashboard)
    ========================================================== */
 document.querySelectorAll(".tab-btn").forEach(btn => {
   btn.addEventListener("click", () => {
@@ -482,6 +516,7 @@ function renderAdminPanel() {
       <td>${u.email}</td>
       <td><strong>${u.credits}</strong></td>
       <td><span class="${u.status === 'active' ? 'badge-active' : 'badge-admin'}">${u.status}</span></td>
+      <td>${u.role}</td>
       <td class="table-actions">
         <button class="btn-action" style="background:#10b981" onclick="modifyCredit(${u.id}, 15)">+15</button>
         <button class="btn-action" style="background:#f59e0b" onclick="modifyCredit(${u.id}, -3)">-3</button>
@@ -509,9 +544,10 @@ function renderAdminPanel() {
     </div>
   `).join("") || "<p>هیچ تیکتی وجود ندارد.</p>";
 
-  // پر کردن فرم تنظیمات
+  // لود تنظیمات
   document.getElementById("setting-site-name").value = siteSettings.name;
   document.getElementById("setting-logo-url").value = siteSettings.logoUrl;
+  document.getElementById("setting-brevo-key").value = siteSettings.brevoApiKey || "";
   document.getElementById("setting-emailjs-public").value = siteSettings.emailjsPublicKey || "";
   document.getElementById("setting-emailjs-service").value = siteSettings.emailjsServiceId || "";
   document.getElementById("setting-emailjs-template").value = siteSettings.emailjsTemplateId || "";
@@ -523,9 +559,63 @@ function renderAdminPanel() {
   }
 }
 
+// فرم افزودن دستی کاربر
+const toggleAddUserBtn = document.getElementById("toggle-add-user-btn");
+const adminAddUserForm = document.getElementById("admin-add-user-form");
+
+if (toggleAddUserBtn) {
+  toggleAddUserBtn.addEventListener("click", () => {
+    adminAddUserForm.classList.toggle("hidden");
+    const isHidden = adminAddUserForm.classList.contains("hidden");
+    toggleAddUserBtn.innerHTML = isHidden 
+      ? '<i class="fa-solid fa-plus"></i> فرم جدید' 
+      : '<i class="fa-solid fa-xmark"></i> بستن فرم';
+  });
+}
+
+if (adminAddUserForm) {
+  adminAddUserForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById("admin-new-name").value.trim();
+    const email = document.getElementById("admin-new-email").value.trim();
+    const pass = document.getElementById("admin-new-pass").value.trim();
+    const credits = parseInt(document.getElementById("admin-new-credit").value) || 15;
+    const role = document.getElementById("admin-new-role").value;
+
+    const existing = systemUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
+    if (existing) {
+      showToast("کاربری با این ایمیل قبلاً در سیستم ثبت شده است!", "error");
+      return;
+    }
+
+    const newUser = {
+      id: Date.now(),
+      name: name,
+      email: email,
+      pass: pass,
+      credits: credits,
+      role: role,
+      status: "active"
+    };
+
+    systemUsers.push(newUser);
+    syncStorage();
+    renderAdminPanel();
+
+    adminAddUserForm.reset();
+    adminAddUserForm.classList.add("hidden");
+    toggleAddUserBtn.innerHTML = '<i class="fa-solid fa-plus"></i> فرم جدید';
+
+    showToast(`کاربر «${name}» با موفقیت اضافه شد و می‌تواند بدون تایید ایمیل وارد شود.`, "success");
+  });
+}
+
+// ذخیره تنظیمات سایت
 document.getElementById("save-settings-btn").addEventListener("click", () => {
   siteSettings.name = document.getElementById("setting-site-name").value.trim() || "CODE AI STUDIO";
   siteSettings.logoUrl = document.getElementById("setting-logo-url").value.trim();
+  siteSettings.brevoApiKey = document.getElementById("setting-brevo-key").value.trim();
   siteSettings.emailjsPublicKey = document.getElementById("setting-emailjs-public").value.trim();
   siteSettings.emailjsServiceId = document.getElementById("setting-emailjs-service").value.trim();
   siteSettings.emailjsTemplateId = document.getElementById("setting-emailjs-template").value.trim();
@@ -535,6 +625,17 @@ document.getElementById("save-settings-btn").addEventListener("click", () => {
   showToast("تنظیمات با موفقیت ذخیره شد.", "success");
 });
 
+document.getElementById("setting-logo-url").addEventListener("input", (e) => {
+  const preview = document.getElementById("setting-logo-preview");
+  if (e.target.value.trim()) {
+    preview.src = e.target.value.trim();
+    preview.classList.remove("hidden");
+  } else {
+    preview.classList.add("hidden");
+  }
+});
+
+// اکشن‌های ادمین
 window.modifyCredit = function(userId, amount) {
   const user = systemUsers.find(u => u.id === userId);
   if (user) {
@@ -558,7 +659,7 @@ window.toggleSuspend = function(userId) {
 };
 
 window.deleteUser = function(userId) {
-  if (confirm("آیا از حذف این کاربر مطمئن هستید؟")) {
+  if (confirm("آیا از حذف این کاربر اطمینان دارید؟")) {
     systemUsers = systemUsers.filter(u => u.id !== userId);
     syncStorage();
     renderAdminPanel();
@@ -567,7 +668,7 @@ window.deleteUser = function(userId) {
 };
 
 window.replyTicket = function(userEmail) {
-  const answer = prompt("متن پاسخ به کاربر را وارد کنید:");
+  const answer = prompt("متن پاسخ به تیکت کاربر را وارد کنید:");
   if (answer) {
     systemTickets.push({
       userEmail: userEmail,
