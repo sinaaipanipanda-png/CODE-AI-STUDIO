@@ -1,7 +1,7 @@
 :root {
-  --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
-  --glass-bg: rgba(255, 255, 255, 0.07);
-  --glass-border: rgba(255, 255, 255, 0.15);
+  --bg-gradient: linear-gradient(135deg, #090d16 0%, #15122e 50%, #20082b 100%);
+  --glass-bg: rgba(255, 255, 255, 0.06);
+  --glass-border: rgba(255, 255, 255, 0.12);
   --glass-blur: blur(16px);
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
@@ -13,11 +13,11 @@
 }
 
 body.light-theme {
-  --bg-gradient: linear-gradient(135deg, #e0e7ff 0%, #f3e8ff 50%, #ede9fe 100%);
-  --glass-bg: rgba(255, 255, 255, 0.7);
+  --bg-gradient: linear-gradient(135deg, #e0e7ff 0%, #f5f3ff 50%, #ede9fe 100%);
+  --glass-bg: rgba(255, 255, 255, 0.75);
   --glass-border: rgba(255, 255, 255, 0.4);
   --glass-blur: blur(14px);
-  --text-main: #1e1b4b;
+  --text-main: #0f172a;
   --text-muted: #64748b;
   --accent: #6d28d9;
   --accent-hover: #5b21b6;
@@ -28,7 +28,7 @@ body.light-theme {
   padding: 0;
   box-sizing: border-box;
   font-family: 'Vazirmatn', sans-serif;
-  transition: background 0.3s ease, border-color 0.3s ease, color 0.2s ease;
+  transition: background 0.25s ease, border-color 0.25s ease;
 }
 
 body {
@@ -37,6 +37,13 @@ body {
   color: var(--text-main);
   overflow-x: hidden;
   position: relative;
+}
+
+/* قفل صفحه قبل از ورود */
+body.locked .glass-header,
+body.locked .sidebar,
+body.locked .overlay {
+  display: none !important;
 }
 
 .glass-bg {
@@ -49,17 +56,17 @@ body {
 .blob {
   position: absolute;
   border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.4;
-  animation: float 12s infinite alternate ease-in-out;
+  filter: blur(90px);
+  opacity: 0.35;
+  animation: float 14s infinite alternate ease-in-out;
 }
-.blob-1 { width: 350px; height: 350px; background: #6366f1; top: 10%; right: 15%; }
-.blob-2 { width: 450px; height: 450px; background: #d946ef; bottom: 10%; left: 10%; }
-.blob-3 { width: 300px; height: 300px; background: #06b6d4; top: 40%; left: 40%; }
+.blob-1 { width: 380px; height: 380px; background: #6366f1; top: 5%; right: 10%; }
+.blob-2 { width: 450px; height: 450px; background: #d946ef; bottom: 5%; left: 5%; }
+.blob-3 { width: 320px; height: 320px; background: #06b6d4; top: 40%; left: 35%; }
 
 @keyframes float {
-  0% { transform: translateY(0) rotate(0deg); }
-  100% { transform: translateY(60px) rotate(40deg); }
+  0% { transform: translateY(0) scale(1); }
+  100% { transform: translateY(50px) scale(1.08); }
 }
 
 .glass-card {
@@ -68,7 +75,7 @@ body {
   -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--glass-border);
   border-radius: 20px;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+  box-shadow: 0 10px 35px 0 rgba(0, 0, 0, 0.25);
 }
 
 .glass-header {
@@ -110,21 +117,22 @@ body {
   background: var(--accent);
   color: white;
   border: none;
-  padding: 0.8rem 1.6rem;
+  padding: 0.85rem 1.5rem;
   border-radius: 12px;
   font-weight: 600;
   cursor: pointer;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  width: 100%;
 }
 .btn-primary:hover { background: var(--accent-hover); }
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
   color: var(--text-main);
   border: 1px solid var(--glass-border);
-  padding: 0.8rem 1.6rem;
+  padding: 0.85rem 1.5rem;
   border-radius: 12px;
   cursor: pointer;
 }
@@ -132,10 +140,11 @@ body {
   background: var(--success);
   color: white;
   border: none;
-  padding: 0.8rem 1.6rem;
+  padding: 0.85rem 1.5rem;
   border-radius: 12px;
   width: 100%;
   cursor: pointer;
+  font-weight: bold;
 }
 .btn-link {
   background: none;
@@ -161,7 +170,7 @@ body {
   height: 100vh;
   z-index: 100;
   padding: 2rem 1.5rem;
-  transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: right 0.35s ease;
 }
 .sidebar.open { right: 0; }
 .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
@@ -194,21 +203,24 @@ body {
 .overlay.active { opacity: 1; pointer-events: auto; }
 
 .main-container {
-  max-width: 900px;
+  max-width: 950px;
   margin: 2rem auto;
-  padding: 0 1.5rem;
+  padding: 0 1.2rem;
   position: relative;
   z-index: 10;
 }
 .hidden { display: none !important; }
 
+/* احراز هویت */
 .auth-box {
   max-width: 440px;
-  margin: 2rem auto;
+  margin: 1.5rem auto;
   padding: 2.5rem 2rem;
   text-align: center;
 }
-.auth-box h2 { margin-bottom: 1.5rem; }
+.auth-brand { margin-bottom: 1.5rem; }
+.auth-brand h2 { font-size: 1.8rem; color: var(--accent); }
+.auth-brand p { color: var(--text-muted); font-size: 0.85rem; }
 .subtitle { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; }
 .input-group {
   position: relative;
@@ -247,6 +259,7 @@ body {
 .auth-switch { margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-muted); }
 .timer-box { margin: 1rem 0; font-size: 0.85rem; color: var(--text-muted); }
 
+/* خانه */
 .welcome-card { padding: 3rem 2rem; text-align: center; }
 .welcome-card h2 { font-size: 2.2rem; margin-bottom: 0.8rem; }
 .hero-sub { font-size: 1.2rem; color: var(--text-muted); margin-bottom: 2rem; }
@@ -255,18 +268,34 @@ body {
 .stat-item strong { color: var(--accent); margin-right: 0.5rem; }
 .quick-actions { display: flex; justify-content: center; gap: 1rem; }
 
+/* چت هوش مصنوعی */
 .chat-wrapper { height: 75vh; display: flex; flex-direction: column; overflow: hidden; }
 .chat-header { padding: 1.2rem; border-bottom: 1px solid var(--glass-border); }
 .ai-info { display: flex; align-items: center; gap: 1rem; }
 .ai-avatar { width: 45px; height: 45px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; }
 .chat-messages { flex: 1; padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1.2rem; }
-.msg { max-width: 80%; padding: 1rem 1.2rem; border-radius: 16px; line-height: 1.7; font-size: 0.95rem; white-space: pre-wrap; }
+.msg { max-width: 85%; padding: 1.1rem 1.3rem; border-radius: 16px; line-height: 1.8; font-size: 0.95rem; white-space: pre-wrap; word-break: break-word; }
 .bot-msg { background: rgba(255, 255, 255, 0.08); align-self: flex-start; border-bottom-right-radius: 4px; border: 1px solid var(--glass-border); }
 .user-msg { background: var(--accent); color: white; align-self: flex-end; border-bottom-left-radius: 4px; }
 .chat-input-box { padding: 1rem; border-top: 1px solid var(--glass-border); display: flex; gap: 0.8rem; }
 .chat-input-box textarea { flex: 1; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); border-radius: 12px; padding: 0.8rem; color: var(--text-main); outline: none; resize: none; }
 .send-btn { background: var(--accent); color: white; border: none; width: 50px; border-radius: 12px; cursor: pointer; font-size: 1.2rem; }
 
+/* بلوک کد */
+pre {
+  background: #0d1117;
+  color: #e6edf3;
+  padding: 1rem;
+  border-radius: 10px;
+  direction: ltr;
+  text-align: left;
+  overflow-x: auto;
+  margin: 0.8rem 0;
+  border: 1px solid rgba(255,255,255,0.1);
+  font-family: monospace;
+}
+
+/* تیکت تلگرامی */
 .telegram-wrapper { height: 75vh; display: flex; flex-direction: column; overflow: hidden; background: rgba(0, 0, 0, 0.2); }
 .tg-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; background: var(--glass-bg); border-bottom: 1px solid var(--glass-border); }
 .tg-user-status { display: flex; align-items: center; gap: 0.8rem; }
@@ -283,6 +312,7 @@ body {
 .tg-input-bar input { flex: 1; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); border-radius: 25px; padding: 0.8rem 1.2rem; color: var(--text-main); outline: none; }
 .tg-input-bar button { background: #0284c7; color: white; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; }
 
+/* پنل ادمین */
 .admin-dashboard { padding: 2rem; }
 .admin-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
 .badge-admin { background: rgba(239, 68, 68, 0.2); color: var(--danger); border: 1px solid var(--danger); padding: 0.4rem 1rem; border-radius: 50px; font-size: 0.85rem; }
@@ -294,10 +324,8 @@ body {
 .table-actions { display: flex; gap: 0.5rem; }
 .btn-action { padding: 0.4rem 0.6rem; border: none; border-radius: 6px; cursor: pointer; color: white; font-size: 0.8rem; }
 
-/* تنظیمات لوگو در پنل ادمین */
-.settings-box { max-width: 500px; margin: 0 auto; text-align: right; }
-.settings-box h3 { margin-bottom: 1.5rem; text-align: center; }
-.settings-box input { padding-right: 1rem !important; }
+.settings-box { max-width: 550px; margin: 0 auto; text-align: right; }
+.settings-box h3 { margin-bottom: 1rem; color: var(--accent); }
 .preview-logo-box { margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; }
 .preview-logo-box img { width: 60px; height: 60px; object-fit: contain; border-radius: 10px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.05); }
 
@@ -313,7 +341,7 @@ body {
   color: var(--text-main);
   box-shadow: 0 10px 25px rgba(0,0,0,0.3);
   transform: translateY(150%);
-  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   z-index: 999;
 }
 .toast.show { transform: translateY(0); }
