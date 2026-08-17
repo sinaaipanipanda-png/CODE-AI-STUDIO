@@ -61,7 +61,7 @@
   <!-- بخش اصلی برنامه -->
   <main class="main-container">
 
-    <!-- ۱. فرم‌های احراز هویت و ورود/ثبت‌نام -->
+    <!-- ۱. فرم‌های احراز هویت -->
     <section id="auth-section" class="page-section glass-card">
       
       <!-- فرم ورود -->
@@ -87,7 +87,7 @@
         </form>
       </div>
 
-      <!-- فرم ثبت‌نام با کد تایید واقعی و تایمر ۶۰ ثانیه -->
+      <!-- فرم ثبت‌نام با کد تایید -->
       <div id="register-box" class="auth-box hidden">
         <h2>ثبت‌نام کاربر جدید</h2>
         <p class="subtitle">کد تایید به ایمیل شما ارسال خواهد شد.</p>
@@ -164,7 +164,7 @@
       </div>
     </section>
 
-    <!-- ۳. صفحه ساخت کد با هوش مصنوعی -->
+    <!-- ۳. صفحه هوش مصنوعی -->
     <section id="ai-page" class="page-section hidden">
       <div class="glass-card chat-wrapper">
         <div class="chat-header">
@@ -233,7 +233,7 @@
       </div>
     </section>
 
-    <!-- ۶. پنل مدیریت سازنده (سینا) همراه با تنظیمات API هوش مصنوعی -->
+    <!-- ۶. پنل مدیریت سازنده (سینا) -->
     <section id="admin-page" class="page-section hidden">
       <div class="glass-card admin-dashboard">
         <div class="admin-top">
@@ -248,7 +248,7 @@
           <button class="tab-btn" data-tab="admin-settings"><i class="fa-solid fa-gear"></i> تنظیمات سایت، لوگو و API هوش مصنوعی</button>
         </div>
 
-        <!-- تب لیست کاربران و فرم ثبت دستی -->
+        <!-- تب لیست کاربران -->
         <div id="admin-users" class="tab-content active">
           
           <div class="glass-card add-user-box">
@@ -294,7 +294,7 @@
                 <tr>
                   <th>نام</th>
                   <th>ایمیل</th>
-                  <th>اعتبار</th>
+                  <th>تغییر مستقیم موجودی اعتبار</th>
                   <th>وضعیت</th>
                   <th>نقش</th>
                   <th>عملیات</th>
@@ -315,17 +315,16 @@
           <div id="admin-ticket-list" class="tickets-list"></div>
         </div>
 
-        <!-- تب تنظیمات ظاهر سایت، لوگو و API هوش مصنوعی -->
+        <!-- تب تنظیمات ظاهر سایت و API -->
         <div id="admin-settings" class="tab-content hidden">
           <div class="settings-box">
             
-            <!-- بخش API هوش مصنوعی -->
             <div class="api-highlight-box">
               <h3><i class="fa-solid fa-brain"></i> تنظیمات API هوش مصنوعی</h3>
               <p class="subtitle" style="text-align: right; margin-bottom: 1rem;">کلید API خود را وارد کنید تا هوش مصنوعی واقعی به سایت متصل شود:</p>
               
               <div class="input-group">
-                <label>ارائه‌دهنده / سرویس هوش مصنوعی:</label>
+                <label>سرویس هوش مصنوعی:</label>
                 <select id="setting-ai-provider" class="glass-select">
                   <option value="openrouter">OpenRouter (پشتیبانی از Claude, GPT-4o, DeepSeek)</option>
                   <option value="openai">OpenAI مستقیم (ChatGPT)</option>
@@ -346,7 +345,6 @@
 
             <hr style="margin: 1.5rem 0; border: 1px solid var(--glass-border);">
 
-            <!-- بخش ظاهر سایت -->
             <h3>تنظیمات ظاهر سایت</h3>
             <div class="input-group">
               <label>نام سایت:</label>
