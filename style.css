@@ -39,7 +39,7 @@ body {
   position: relative;
 }
 
-/* حالت قفل قبل از ورود */
+/* حالت قفل قبل از ورود کاربر */
 body.locked .glass-header,
 body.locked .sidebar,
 body.locked .overlay {
@@ -211,7 +211,7 @@ body.locked .overlay {
 }
 .hidden { display: none !important; }
 
-/* احراز هویت */
+/* فرم‌های لاگین / ثبت‌نام */
 .auth-box {
   max-width: 440px;
   margin: 1.5rem auto;
@@ -268,7 +268,7 @@ body.locked .overlay {
 .stat-item strong { color: var(--accent); margin-right: 0.5rem; }
 .quick-actions { display: flex; justify-content: center; gap: 1rem; }
 
-/* چت AI */
+/* چت هوش مصنوعی */
 .chat-wrapper { height: 75vh; display: flex; flex-direction: column; overflow: hidden; }
 .chat-header { padding: 1.2rem; border-bottom: 1px solid var(--glass-border); }
 .ai-info { display: flex; align-items: center; gap: 1rem; }
@@ -331,9 +331,16 @@ pre {
 .glass-select { width: 100%; padding: 0.85rem 1rem; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); border-radius: 12px; color: var(--text-main); outline: none; }
 .glass-select option { background: #1e1b4b; color: #fff; }
 
-/* تنظیمات سایت */
+/* تنظیمات سایت و بخش اختصاصی API */
 .settings-box { max-width: 550px; margin: 0 auto; text-align: right; }
 .settings-box h3 { margin-bottom: 1rem; color: var(--accent); }
+.api-highlight-box {
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid var(--accent);
+  padding: 1.5rem;
+  border-radius: 16px;
+  margin-bottom: 1.5rem;
+}
 .preview-logo-box { margin-bottom: 1.5rem; display: flex; align-items: center; gap: 1rem; }
 .preview-logo-box img { width: 60px; height: 60px; object-fit: contain; border-radius: 10px; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.05); }
 
