@@ -1,22 +1,24 @@
 /**
  * CODE AI STUDIO Core Engine
- * متصل به سرویس ایمیل SendPulse و موتور هوش مصنوعی API
+ * متصل به سیستم رسمی احراز هویت Supabase و موتور هوش مصنوعی
  * سازنده و مدیر کل: سینا (sina.ai.pani.panda@gmail.com / sina13950)
  */
 
 const ADMIN_EMAIL = "sina.ai.pani.panda@gmail.com";
 const ADMIN_PASS = "sina13950";
 
-// کلید اختصاصی SendPulse برای ارسال کد تایید
-const SENDPULSE_API_KEY = "sp_apikey_a0afbbcdd51d03a00cc5b71539622c99aa3f1af1f54bdf309f066201af320829";
+// اتصال رسمی به پروژه Supabase شما
+const SUPABASE_URL = "https://umeluygcqjcnzmtbermp.supabase.co";
+const SUPABASE_KEY = "sb_publishable_jQTeGdZgKUqHc47WtBZlxg_H5aPGx-G";
+const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
 
-// تنظیمات و ذخیره‌سازی
+// تنظیمات و دیتابیس لوکال
 let siteSettings = JSON.parse(localStorage.getItem("code_ai_settings")) || {
   name: "CODE AI STUDIO",
   logoUrl: "",
   aiProvider: "openrouter",
   aiApiKey: "",
-  aiModel: "openai/gpt-4o-mini"
+  aiModel: "deepseek/deepseek-r1:free"
 };
 
 let currentUser = JSON.parse(localStorage.getItem("code_ai_user")) || null;
@@ -139,11 +141,11 @@ function checkDailyCreditReset() {
 }
 
 /* ==========================================================
-   احراز هویت و ارسال قطعی کد تایید
+   احراز هویت واقعی با کد تایید Supabase OTP
    ========================================================== */
-let generatedOTP = null;
 let otpTimer = null;
 let timeLeft = 60;
+let pendingRegData = null;
 
 const goToReg = document.getElementById("go-to-register");
 const backToLog = document.getElementById("back-to-login");
@@ -188,40 +190,56 @@ function startOTPTimer() {
   }, 1000);
 }
 
-// تابع ارسال ایمیل
+// ارسال کد تایید ۶ رقمی به ایمیل از طریق سرورهای Supabase
 async function sendRealEmailOTP() {
   const emailInput = document.getElementById("reg-email");
   const nameInput = document.getElementById("reg-name");
+  const passInput = document.getElementById("reg-password");
   
   const email = emailInput ? emailInput.value.trim() : "";
-  const name = nameInput && nameInput.value.trim() ? nameInput.value.trim() : "کاربر عزیز";
+  const name = nameInput ? nameInput.value.trim() : "کاربر عزیز";
+  const pass = passInput ? passInput.value.trim() : "";
 
   if (!email || !email.includes("@")) {
     showToast("لطفاً یک ایمیل معتبر وارد کنید", "error");
     return;
   }
+  if (!name || !pass) {
+    showToast("لطفاً نام و رمز عبور را نیز تکمیل کنید", "error");
+    return;
+  }
 
-  generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
-  showToast("در حال پردازش و ارسال کد...", "info");
+  pendingRegData = { name, email, pass };
+  showToast("در حال ارسال کد تایید ۶ رقمی به ایمیل شما...", "info");
 
   try {
-    fetch("https://api.web3forms.com/submit", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      body: JSON.stringify({
-        access_key: "a8497d54-18fa-4e78-bc51-036154687980",
-        subject: `کد تایید ورود به ${siteSettings.name}`,
-        from_name: siteSettings.name,
+    if (supabase) {
+      const { error } = await supabase.auth.signInWithOtp({
         email: email,
-        message: `سلام ${name} عزیز!\n\nکد ۶ رقمی ورود و تایید حساب شما در ${siteSettings.name}:\n${generatedOTP}\n\nاین کد تا چند دقیقه معتبر است.`
-      })
-    }).catch(() => {});
-  } catch (e) {}
+        options: {
+          shouldCreateUser: true,
+          data: { name: name }
+        }
+      });
 
-  showToast(`کد تایید ورود شما: [ ${generatedOTP} ]`, "success");
+      if (error) {
+        console.error("Supabase Send OTP Error:", error);
+        showToast(error.message || "خطا در ارسال ایمیل. لطفاً بررسی کنید.", "error");
+      } else {
+        showToast(`کد تایید ۶ رقمی به ایمیل ${email} ارسال شد. لطفاً صندوق دریافت (یا Spam) را چک کنید.`, "success");
+      }
+    } else {
+      showToast("کتابخانه Supabase لود نشد. اینترنت را چک کنید.", "error");
+    }
+  } catch (err) {
+    console.error("OTP Error:", err);
+    showToast("خطا در ارتباط با سرورهای احراز هویت Supabase.", "error");
+  }
 
   const otpBox = document.getElementById("otp-container");
+  const otpInput = document.getElementById("otp-input");
   if (otpBox) otpBox.classList.remove("hidden");
+  if (otpInput) otpInput.value = "";
   if (sendOtpBtn) sendOtpBtn.classList.add("hidden");
   startOTPTimer();
 }
@@ -229,41 +247,59 @@ async function sendRealEmailOTP() {
 if (sendOtpBtn) sendOtpBtn.addEventListener("click", sendRealEmailOTP);
 if (resendOtpBtn) resendOtpBtn.addEventListener("click", sendRealEmailOTP);
 
-// تایید کد و ثبت‌نام
+// تایید کد ۶ رقمی ارسالی به ایمیل و تکمیل ثبت‌نام
 const regForm = document.getElementById("register-form");
 if (regForm) {
-  regForm.addEventListener("submit", (e) => {
+  regForm.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const name = document.getElementById("reg-name").value.trim();
-    const email = document.getElementById("reg-email").value.trim();
-    const pass = document.getElementById("reg-password").value.trim();
     const userOTP = document.getElementById("otp-input").value.trim();
 
-    if (userOTP !== generatedOTP) {
+    if (!userOTP || userOTP.length < 6) {
       showToast("کد ورود نامعتبر است", "error");
       return;
     }
 
-    const newUser = {
-      id: Date.now(),
-      name: name,
-      email: email,
-      pass: pass,
-      credits: 15,
-      role: (email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) ? "admin" : "user",
-      status: "active"
-    };
+    showToast("در حال بررسی صحت کد امنیتی...", "info");
 
-    systemUsers.push(newUser);
-    currentUser = newUser;
-    syncStorage();
+    try {
+      if (supabase && pendingRegData) {
+        const { data, error } = await supabase.auth.verifyOtp({
+          email: pendingRegData.email,
+          token: userOTP,
+          type: 'email'
+        });
 
-    showToast("ثبت‌نام با موفقیت انجام شد! ۱۵ اعتبار هدیه دریافت کردید.", "success");
-    loginUserSession(newUser);
+        if (error) {
+          console.error("OTP Verification Error:", error);
+          showToast("کد ورود نامعتبر است", "error");
+          return;
+        }
+
+        // ایجاد کاربر با ۱۵ اعتبار اولیه
+        const newUser = {
+          id: Date.now(),
+          name: pendingRegData.name,
+          email: pendingRegData.email,
+          pass: pendingRegData.pass,
+          credits: 15,
+          role: (pendingRegData.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) ? "admin" : "user",
+          status: "active"
+        };
+
+        systemUsers.push(newUser);
+        currentUser = newUser;
+        syncStorage();
+
+        showToast("ثبت‌نام با موفقیت تایید شد! ۱۵ اعتبار هدیه دریافت کردید.", "success");
+        loginUserSession(newUser);
+      }
+    } catch (err) {
+      showToast("کد ورود نامعتبر است", "error");
+    }
   });
 }
 
-// ورود به حساب
+// ورود به حساب کاربری
 const logForm = document.getElementById("login-form");
 if (logForm) {
   logForm.addEventListener("submit", (e) => {
@@ -288,20 +324,33 @@ if (logForm) {
   });
 }
 
-// بازیابی رمز عبور
+// بازیابی رمز عبور با لینک رسمی Supabase
 const resForm = document.getElementById("reset-form");
 if (resForm) {
   resForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const email = document.getElementById("reset-email").value.trim();
-    const user = systemUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
 
-    if (user) {
-      showToast(`لینک بازیابی رمز عبور به ایمیل ${email} ارسال شد!`, "success");
-      document.getElementById("reset-box").classList.add("hidden");
-      document.getElementById("login-box").classList.remove("hidden");
-    } else {
-      showToast("کاربری با این ایمیل یافت نشد!", "error");
+    if (!email) {
+      showToast("لطفاً ایمیل خود را وارد کنید", "error");
+      return;
+    }
+
+    showToast("در حال ارسال لینک بازیابی...", "info");
+
+    try {
+      if (supabase) {
+        const { error } = await supabase.auth.resetPasswordForEmail(email);
+        if (error) {
+          showToast(error.message || "کاربری با این ایمیل یافت نشد!", "error");
+        } else {
+          showToast(`لینک بازیابی رمز عبور با موفقیت به ایمیل ${email} ارسال شد!`, "success");
+          document.getElementById("reset-box").classList.add("hidden");
+          document.getElementById("login-box").classList.remove("hidden");
+        }
+      }
+    } catch (err) {
+      showToast("خطا در ارسال لینک بازیابی.", "error");
     }
   });
 }
@@ -309,7 +358,8 @@ if (resForm) {
 // خروج از حساب
 const logOutBtn = document.getElementById("logout-btn");
 if (logOutBtn) {
-  logOutBtn.addEventListener("click", () => {
+  logOutBtn.addEventListener("click", async () => {
+    if (supabase) await supabase.auth.signOut();
     currentUser = null;
     localStorage.removeItem("code_ai_user");
     location.reload();
@@ -409,7 +459,7 @@ async function handleAiPrompt() {
     // اگر کلید API در پنل ادمین ثبت شده باشد:
     if (siteSettings.aiApiKey) {
       let endpoint = "https://openrouter.ai/api/v1/chat/completions";
-      let model = siteSettings.aiModel || "openai/gpt-4o-mini";
+      let model = siteSettings.aiModel || "deepseek/deepseek-r1:free";
 
       if (siteSettings.aiProvider === "openai") {
         endpoint = "https://api.openai.com/v1/chat/completions";
@@ -649,7 +699,7 @@ function renderAdminPanel() {
   }
 }
 
-// تابع ثبت مستقیم و دقیق موجودی اعتبار جدید کاربر
+// تغییر مستقیم موجودی اعتبار
 window.setExactCredit = function(userId) {
   const inputEl = document.getElementById(`credit-input-${userId}`);
   if (!inputEl) return;
@@ -685,7 +735,7 @@ if (toggleAddUserBtn && adminAddUserForm) {
   });
 }
 
-// ثبت دستی کاربر بدون تایید ایمیل
+// ساخت دستی کاربر
 if (adminAddUserForm) {
   adminAddUserForm.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -720,7 +770,7 @@ if (adminAddUserForm) {
     adminAddUserForm.classList.add("hidden");
     if (toggleAddUserBtn) toggleAddUserBtn.innerHTML = '<i class="fa-solid fa-plus"></i> فرم جدید';
 
-    showToast(`کاربر «${name}» با موفقیت اضافه شد و می‌تواند بدون تایید ایمیل وارد شود.`, "success");
+    showToast(`کاربر «${name}» با موفقیت اضافه شد و می‌تواند فوراً وارد شود.`, "success");
   });
 }
 
@@ -761,7 +811,7 @@ if (logoInput) {
   });
 }
 
-// توابع تعلیق و حذف و پاسخ تیکت
+// عملیات پنل مدیریت
 window.toggleSuspend = function(userId) {
   const user = systemUsers.find(u => u.id === userId);
   if (user) {
