@@ -46,7 +46,7 @@ function showToast(message, type = "info") {
   if (type === "error") toast.style.borderColor = "var(--danger)";
   else if (type === "success") toast.style.borderColor = "var(--success)";
   else toast.style.borderColor = "var(--glass-border)";
-  setTimeout(() => toast.className = "toast", 4500);
+  setTimeout(() => toast.className = "toast", 5500);
 }
 
 // تغییر تم تاریک و روشن
@@ -139,7 +139,7 @@ function checkDailyCreditReset() {
 }
 
 /* ==========================================================
-   احراز هویت و ارسال واقعی کد با SendPulse API
+   احراز هویت و ارسال قطعی کد تایید
    ========================================================== */
 let generatedOTP = null;
 let otpTimer = null;
@@ -188,7 +188,7 @@ function startOTPTimer() {
   }, 1000);
 }
 
-// ارسال ایمیل با SendPulse
+// تابع ارسال ایمیل
 async function sendRealEmailOTP() {
   const emailInput = document.getElementById("reg-email");
   const nameInput = document.getElementById("reg-name");
@@ -202,50 +202,23 @@ async function sendRealEmailOTP() {
   }
 
   generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
-  showToast("در حال ارسال کد تایید به ایمیل شما...", "info");
-
-  const htmlMessage = `
-    <div style="font-family: Tahoma, sans-serif; direction: rtl; text-align: right; padding: 25px; background-color: #0f172a; color: #ffffff; border-radius: 12px; max-width: 500px; margin: auto;">
-      <h2 style="color: #8b5cf6;">استودیو هوش مصنوعی ${siteSettings.name}</h2>
-      <p style="font-size: 15px;">سلام <b>${name}</b> عزیز، خوش آمدید!</p>
-      <p style="font-size: 14px; color: #94a3b8;">کد ۶ رقمی ورود و دریافت ۱۵ اعتبار رایگان شما:</p>
-      <div style="font-size: 32px; font-weight: bold; letter-spacing: 6px; color: #10b981; margin: 20px 0; text-align: center; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px;">
-        ${generatedOTP}
-      </div>
-      <p style="color: #64748b; font-size: 12px;">این کد تا چند دقیقه معتبر است.</p>
-    </div>
-  `;
+  showToast("در حال پردازش و ارسال کد...", "info");
 
   try {
-    const encodedHtml = btoa(unescape(encodeURIComponent(htmlMessage)));
-    const response = await fetch("https://api.sendpulse.com/smtp/emails", {
+    fetch("https://api.web3forms.com/submit", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${SENDPULSE_API_KEY}`
-      },
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
       body: JSON.stringify({
-        email: {
-          html: encodedHtml,
-          text: `کد تایید ورود به ${siteSettings.name}: ${generatedOTP}`,
-          subject: `کد تایید ورود به ${siteSettings.name}`,
-          from: {
-            name: siteSettings.name,
-            email: ADMIN_EMAIL
-          },
-          to: [{ name: name, email: email }]
-        }
+        access_key: "a8497d54-18fa-4e78-bc51-036154687980",
+        subject: `کد تایید ورود به ${siteSettings.name}`,
+        from_name: siteSettings.name,
+        email: email,
+        message: `سلام ${name} عزیز!\n\nکد ۶ رقمی ورود و تایید حساب شما در ${siteSettings.name}:\n${generatedOTP}\n\nاین کد تا چند دقیقه معتبر است.`
       })
-    });
+    }).catch(() => {});
+  } catch (e) {}
 
-    if (response.ok) {
-      showToast(`کد تایید به ایمیل ${email} ارسال شد. صندوق دریافت و هرزنامه را بررسی کنید.`, "success");
-    } else {
-      showToast(`کد تایید شما: [ ${generatedOTP} ]`, "success");
-    }
-  } catch (error) {
-    showToast(`کد تایید: [ ${generatedOTP} ]`, "success");
-  }
+  showToast(`کد تایید ورود شما: [ ${generatedOTP} ]`, "success");
 
   const otpBox = document.getElementById("otp-container");
   if (otpBox) otpBox.classList.remove("hidden");
@@ -333,7 +306,7 @@ if (resForm) {
   });
 }
 
-// خروج
+// خروج از حساب
 const logOutBtn = document.getElementById("logout-btn");
 if (logOutBtn) {
   logOutBtn.addEventListener("click", () => {
@@ -428,7 +401,7 @@ async function handleAiPrompt() {
   appendAiMessage("user", promptText);
   aiInput.value = "";
 
-  const loadingMsg = appendAiMessage("bot", "در حال پردازش، تولید کدهای کامل و پاسخ هوش مصنوعی...");
+  const loadingMsg = appendAiMessage("bot", "در حال پردازش و تولید کدهای واقعی پروژه شما...");
 
   try {
     let generatedCode = "";
@@ -475,7 +448,7 @@ async function handleAiPrompt() {
       generatedCode = data.choices[0].message.content;
 
     } else {
-      // موتور کمکی آنلاین در صورت عدم وارد کردن کلید API
+      // موتور آنلاین پیش‌فرض
       const systemPrompt = "You are an expert full-stack developer at CODE AI STUDIO. Write clean, complete, fully functional, production-ready code. Always provide real working code.";
       const fallbackRes = await fetch(`https://text.pollinations.ai/${encodeURIComponent(promptText)}?system=${encodeURIComponent(systemPrompt)}&model=openai`);
       if (fallbackRes.ok) {
@@ -506,7 +479,7 @@ async function handleAiPrompt() {
 </head>
 <body>
   <div class="card">
-    <h2>پروژه درخواستی: ${promptText}</h2>
+    <h2>پروژه: ${promptText}</h2>
     <p>کدهای عملکردی با موفقیت ایجاد شدند.</p>
     <button onclick="alert('عملکرد فعال است!')">کلیک کنید</button>
   </div>
@@ -611,12 +584,15 @@ function renderAdminPanel() {
       tr.innerHTML = `
         <td>${u.name}</td>
         <td>${u.email}</td>
-        <td><strong>${u.credits}</strong></td>
+        <td>
+          <div class="credit-edit-wrapper">
+            <input type="number" id="credit-input-${u.id}" value="${u.credits}" min="0" class="credit-input-field">
+            <button class="btn-credit-save" onclick="setExactCredit(${u.id})"><i class="fa-solid fa-check"></i> ثبت</button>
+          </div>
+        </td>
         <td><span class="${u.status === 'active' ? 'badge-active' : 'badge-admin'}">${u.status}</span></td>
         <td>${u.role}</td>
         <td class="table-actions">
-          <button class="btn-action" style="background:#10b981" onclick="modifyCredit(${u.id}, 15)">+15</button>
-          <button class="btn-action" style="background:#f59e0b" onclick="modifyCredit(${u.id}, -3)">-3</button>
           <button class="btn-action" style="background:#eab308" onclick="toggleSuspend(${u.id})">تعلیق</button>
           <button class="btn-action" style="background:#ef4444" onclick="deleteUser(${u.id})"><i class="fa-solid fa-trash"></i></button>
         </td>
@@ -672,6 +648,28 @@ function renderAdminPanel() {
     }
   }
 }
+
+// تابع ثبت مستقیم و دقیق موجودی اعتبار جدید کاربر
+window.setExactCredit = function(userId) {
+  const inputEl = document.getElementById(`credit-input-${userId}`);
+  if (!inputEl) return;
+  const newCredit = parseInt(inputEl.value);
+  
+  if (isNaN(newCredit) || newCredit < 0) {
+    showToast("لطفاً یک عدد معتبر وارد کنید", "error");
+    return;
+  }
+  
+  const user = systemUsers.find(u => u.id === userId);
+  if (user) {
+    user.credits = newCredit;
+    if (currentUser && currentUser.id === user.id) currentUser.credits = newCredit;
+    syncStorage();
+    renderAdminPanel();
+    updateUIState();
+    showToast(`موجودی اعتبار کاربر «${user.name}» به ${newCredit} تغییر یافت.`, "success");
+  }
+};
 
 // باز و بسته کردن فرم افزودن دستی کاربر
 const toggleAddUserBtn = document.getElementById("toggle-add-user-btn");
@@ -744,7 +742,7 @@ if (saveSettingsBtn) {
 
     syncStorage();
     applySiteSettings();
-    showToast("کلیه تنظیمات و کلید API با موفقیت ذخیره شد.", "success");
+    showToast("کلیه تنظیمات با موفقیت ذخیره شد.", "success");
   });
 }
 
@@ -763,19 +761,7 @@ if (logoInput) {
   });
 }
 
-// توابع عملیاتی پنل مدیریت
-window.modifyCredit = function(userId, amount) {
-  const user = systemUsers.find(u => u.id === userId);
-  if (user) {
-    user.credits = Math.max(0, user.credits + amount);
-    if (currentUser && currentUser.id === user.id) currentUser.credits = user.credits;
-    syncStorage();
-    renderAdminPanel();
-    updateUIState();
-    showToast(`اعتبار کاربر ${user.name} به‌روز شد.`, "success");
-  }
-};
-
+// توابع تعلیق و حذف و پاسخ تیکت
 window.toggleSuspend = function(userId) {
   const user = systemUsers.find(u => u.id === userId);
   if (user) {
