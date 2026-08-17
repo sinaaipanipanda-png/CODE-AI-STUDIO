@@ -13,6 +13,9 @@
   <!-- آیکون‌های FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
+  <!-- کتابخانه رسمی جاوااسکریپت Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="dark-theme locked">
@@ -87,10 +90,10 @@
         </form>
       </div>
 
-      <!-- فرم ثبت‌نام با کد تایید -->
+      <!-- فرم ثبت‌نام با کد تایید واقعی و امن Supabase -->
       <div id="register-box" class="auth-box hidden">
         <h2>ثبت‌نام کاربر جدید</h2>
-        <p class="subtitle">کد تایید به ایمیل شما ارسال خواهد شد.</p>
+        <p class="subtitle">کد ۶ رقمی مستقیماً به ایمیل شما ارسال خواهد شد.</p>
         <form id="register-form">
           <div class="input-group">
             <i class="fa-solid fa-user"></i>
@@ -112,13 +115,13 @@
           <div id="otp-container" class="hidden">
             <div class="input-group">
               <i class="fa-solid fa-key"></i>
-              <input type="text" id="otp-input" placeholder="کد ۶ رقمی ارسال‌شده">
+              <input type="text" id="otp-input" placeholder="کد ۶ رقمی ارسالی از Supabase">
             </div>
             <div class="timer-box">
               <span id="timer-text">امکان ارسال مجدد: <b id="countdown">60</b> ثانیه</span>
               <button type="button" id="resend-otp-btn" class="btn-link" disabled>ارسال مجدد کد</button>
             </div>
-            <button type="submit" class="btn-success">تأیید کد و ورود به سامانه</button>
+            <button type="submit" class="btn-success">تأیید کد و تکمیل ثبت‌نام</button>
           </div>
 
           <p class="auth-switch">قبلاً ثبت‌نام کرده‌اید؟ <a href="#" id="back-to-login">ورود</a></p>
@@ -164,7 +167,7 @@
       </div>
     </section>
 
-    <!-- ۳. صفحه هوش مصنوعی -->
+    <!-- ۳. صفحه ساخت کد با هوش مصنوعی -->
     <section id="ai-page" class="page-section hidden">
       <div class="glass-card chat-wrapper">
         <div class="chat-header">
@@ -172,7 +175,7 @@
             <div class="ai-avatar"><i class="fa-solid fa-robot"></i></div>
             <div>
               <h3 id="ai-assistant-title">دستیار فوق هوشمند CODE AI STUDIO</h3>
-              <small>تولید کدهای واقعی، تابعی و کامل | هر پیام = ۳ اعتبار</small>
+              <small>تولید کدهای کامل و کاربردی | هر پیام = ۳ اعتبار</small>
             </div>
           </div>
         </div>
@@ -184,7 +187,7 @@
         </div>
 
         <div class="chat-input-box">
-          <textarea id="ai-prompt-input" rows="2" placeholder="توضیح دهید چه کدی می‌خواهید (مثلاً: یک پنل کاربری ریسپانسیو با جاوااسکریپت)..."></textarea>
+          <textarea id="ai-prompt-input" rows="2" placeholder="توضیح دهید چه کدی می‌خواهید (مثلاً: یک صفحه لاگین شیشه‌ای ریسپانسیو با جاوااسکریپت)..."></textarea>
           <button id="send-ai-btn" class="send-btn"><i class="fa-solid fa-paper-plane"></i></button>
         </div>
       </div>
@@ -326,7 +329,7 @@
               <div class="input-group">
                 <label>سرویس هوش مصنوعی:</label>
                 <select id="setting-ai-provider" class="glass-select">
-                  <option value="openrouter">OpenRouter (پشتیبانی از Claude, GPT-4o, DeepSeek)</option>
+                  <option value="openrouter">OpenRouter (پشتیبانی از DeepSeek, Claude, GPT-4o)</option>
                   <option value="openai">OpenAI مستقیم (ChatGPT)</option>
                   <option value="groq">Groq (سرعت فوق‌العاده بالا)</option>
                 </select>
@@ -339,7 +342,7 @@
 
               <div class="input-group">
                 <label>نام مدل مد نظر (اختیاری):</label>
-                <input type="text" id="setting-ai-model" placeholder="پیش‌فرض: openai/gpt-4o-mini یا deepseek/deepseek-chat">
+                <input type="text" id="setting-ai-model" placeholder="پیش‌فرض: deepseek/deepseek-r1:free">
               </div>
             </div>
 
