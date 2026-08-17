@@ -13,14 +13,11 @@
   <!-- آیکون‌های FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- کتابخانه ایمیل EmailJS -->
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-  
   <link rel="stylesheet" href="style.css">
 </head>
 <body class="dark-theme locked">
 
-  <!-- پس‌زمینه متحرک شیشه‌ای (Glassmorphism) -->
+  <!-- پس‌زمینه متحرک شیشه‌ای -->
   <div class="glass-bg">
     <div class="blob blob-1"></div>
     <div class="blob blob-2"></div>
@@ -175,7 +172,7 @@
             <div class="ai-avatar"><i class="fa-solid fa-robot"></i></div>
             <div>
               <h3 id="ai-assistant-title">دستیار فوق هوشمند CODE AI STUDIO</h3>
-              <small>تولید کدهای کامل و کاربردی | هر پیام = ۳ اعتبار</small>
+              <small>تولید کدهای واقعی، تابعی و کامل | هر پیام = ۳ اعتبار</small>
             </div>
           </div>
         </div>
@@ -187,7 +184,7 @@
         </div>
 
         <div class="chat-input-box">
-          <textarea id="ai-prompt-input" rows="2" placeholder="توضیح دهید چه کدی می‌خواهید (مثلاً: یک ماشین حساب شیشه‌ای با جاوااسکریپت)..."></textarea>
+          <textarea id="ai-prompt-input" rows="2" placeholder="توضیح دهید چه کدی می‌خواهید (مثلاً: یک پنل کاربری ریسپانسیو با جاوااسکریپت)..."></textarea>
           <button id="send-ai-btn" class="send-btn"><i class="fa-solid fa-paper-plane"></i></button>
         </div>
       </div>
@@ -236,7 +233,7 @@
       </div>
     </section>
 
-    <!-- ۶. پنل مدیریت سازنده (سینا) -->
+    <!-- ۶. پنل مدیریت سازنده (سینا) همراه با تنظیمات API هوش مصنوعی -->
     <section id="admin-page" class="page-section hidden">
       <div class="glass-card admin-dashboard">
         <div class="admin-top">
@@ -248,7 +245,7 @@
           <button class="tab-btn active" data-tab="admin-users"><i class="fa-solid fa-users"></i> لیست کاربران</button>
           <button class="tab-btn" data-tab="admin-chats"><i class="fa-solid fa-robot"></i> لیست گفتگوها</button>
           <button class="tab-btn" data-tab="admin-tickets"><i class="fa-solid fa-ticket"></i> لیست تیکت‌ها</button>
-          <button class="tab-btn" data-tab="admin-settings"><i class="fa-solid fa-gear"></i> تنظیمات سایت، لوگو و ایمیل</button>
+          <button class="tab-btn" data-tab="admin-settings"><i class="fa-solid fa-gear"></i> تنظیمات سایت، لوگو و API هوش مصنوعی</button>
         </div>
 
         <!-- تب لیست کاربران و فرم ثبت دستی -->
@@ -318,9 +315,38 @@
           <div id="admin-ticket-list" class="tickets-list"></div>
         </div>
 
-        <!-- تب تنظیمات ظاهر، لوگو و کلیدهای ایمیل -->
+        <!-- تب تنظیمات ظاهر سایت، لوگو و API هوش مصنوعی -->
         <div id="admin-settings" class="tab-content hidden">
           <div class="settings-box">
+            
+            <!-- بخش API هوش مصنوعی -->
+            <div class="api-highlight-box">
+              <h3><i class="fa-solid fa-brain"></i> تنظیمات API هوش مصنوعی</h3>
+              <p class="subtitle" style="text-align: right; margin-bottom: 1rem;">کلید API خود را وارد کنید تا هوش مصنوعی واقعی به سایت متصل شود:</p>
+              
+              <div class="input-group">
+                <label>ارائه‌دهنده / سرویس هوش مصنوعی:</label>
+                <select id="setting-ai-provider" class="glass-select">
+                  <option value="openrouter">OpenRouter (پشتیبانی از Claude, GPT-4o, DeepSeek)</option>
+                  <option value="openai">OpenAI مستقیم (ChatGPT)</option>
+                  <option value="groq">Groq (سرعت فوق‌العاده بالا)</option>
+                </select>
+              </div>
+
+              <div class="input-group">
+                <label>کلید API هوش مصنوعی (API Key):</label>
+                <input type="password" id="setting-ai-key" placeholder="مثال: sk-or-v1-... یا sk-proj-...">
+              </div>
+
+              <div class="input-group">
+                <label>نام مدل مد نظر (اختیاری):</label>
+                <input type="text" id="setting-ai-model" placeholder="پیش‌فرض: openai/gpt-4o-mini یا deepseek/deepseek-chat">
+              </div>
+            </div>
+
+            <hr style="margin: 1.5rem 0; border: 1px solid var(--glass-border);">
+
+            <!-- بخش ظاهر سایت -->
             <h3>تنظیمات ظاهر سایت</h3>
             <div class="input-group">
               <label>نام سایت:</label>
@@ -335,28 +361,6 @@
               <img id="setting-logo-preview" src="" alt="پیش‌نمایش لوگو" class="hidden">
             </div>
 
-            <hr style="margin: 1.5rem 0; border: 1px solid var(--glass-border);">
-
-            <h3>تنظیمات ارسال واقعی ایمیل (Brevo یا EmailJS)</h3>
-            <div class="input-group">
-              <label>کلید Brevo API Key (توصیه شده - ۳۰۰ ایمیل رایگان در روز):</label>
-              <input type="text" id="setting-brevo-key" placeholder="xkeysib-xxxxxxxxxxxx">
-            </div>
-
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.8rem;">یا استفاده از EmailJS:</p>
-            <div class="input-group">
-              <label>EmailJS Public Key:</label>
-              <input type="text" id="setting-emailjs-public" placeholder="user_xxxx">
-            </div>
-            <div class="input-group">
-              <label>EmailJS Service ID:</label>
-              <input type="text" id="setting-emailjs-service" placeholder="service_xxxx">
-            </div>
-            <div class="input-group">
-              <label>EmailJS Template ID:</label>
-              <input type="text" id="setting-emailjs-template" placeholder="template_xxxx">
-            </div>
-
             <button id="save-settings-btn" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> ذخیره کلیه تنظیمات</button>
           </div>
         </div>
@@ -366,7 +370,7 @@
 
   </main>
 
-  <!-- نوتیفیکیشن اختصاصی (Toast) -->
+  <!-- نوتیفیکیشن Toast -->
   <div id="toast" class="toast"></div>
 
   <script src="app.js"></script>
