@@ -1,6 +1,6 @@
 /**
  * CODE AI STUDIO Core Engine
- * متصل به سیستم رسمی Google Identity Services و هوش مصنوعی
+ * متصل به Google Identity Services مستقیم و موتور هوش مصنوعی OpenRouter
  * شناسه رسمی گوگل: 305751111429-6ribodttr55u4p6gbchnqlea1b75o8cs.apps.googleusercontent.com
  * سازنده و مدیر کل: سینا (sina.ai.pani.panda@gmail.com / sina13950)
  */
@@ -141,7 +141,7 @@ function checkDailyCreditReset() {
 }
 
 /* ==========================================================
-   موتور رسمی ورود گوگل (Google Identity Services)
+   موتور رسمی ثبت‌نام و ورود گوگل (Google Identity Services)
    ========================================================== */
 function initOfficialGoogleButton() {
   const container = document.getElementById("google-btn-container");
@@ -191,7 +191,7 @@ window.triggerQuickGooglePrompt = function() {
   if (window.google && window.google.accounts && window.google.accounts.id) {
     google.accounts.id.prompt();
   } else {
-    showToast("در حال لود کتابخانه گوگل... چند لحظه بعد تلاش کنید.", "info");
+    showToast("در حال لود کتابخانه گوگل... لطفاً چند ثانیه بعد امتحان کنید.", "info");
   }
 };
 
@@ -221,11 +221,12 @@ function handleGoogleAuthResponse(response) {
   }
 }
 
-// پردازش و ایجاد حساب با ۱۵ اعتبار اولیه
+// ثبت یا ورود کاربر با اختصاص ۱۵ اعتبار هدیه
 function handleSuccessfulLogin(name, email) {
   let user = systemUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
 
   if (!user) {
+    // کاربر جدید: اختصاص ۱۵ اعتبار اولیه
     user = {
       id: Date.now(),
       name: name,
@@ -249,7 +250,7 @@ function handleSuccessfulLogin(name, email) {
   loginUserSession(user);
 }
 
-// فرم ورود مستقیم مدیریت
+// فرم ورود عمومی (ایمیل و رمز عبور برای همه کاربران و مدیریت)
 const logForm = document.getElementById("login-form");
 if (logForm) {
   logForm.addEventListener("submit", (e) => {
@@ -778,7 +779,6 @@ window.replyTicket = function(userEmail) {
 window.addEventListener("DOMContentLoaded", () => {
   applySiteSettings();
   
-  // تلاش برای ساخت دکمه رسمی گوگل
   let checkGoogleLoaded = setInterval(() => {
     if (window.google && window.google.accounts) {
       initOfficialGoogleButton();
