@@ -13,7 +13,7 @@
   <!-- آیکون‌های FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- اسکریپت رسمی ورود مستقیم گوگل (Google Identity Services) -->
+  <!-- اسکریپت رسمی ورود مستقیم گوگل -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   
   <link rel="stylesheet" href="style.css">
@@ -64,32 +64,32 @@
   <!-- بخش اصلی برنامه -->
   <main class="main-container">
 
-    <!-- ۱. بخش ورود رسمی گوگل و مدیریت -->
+    <!-- ۱. بخش ورود رسمی گوگل و ورود با حساب کاربری -->
     <section id="auth-section" class="page-section glass-card">
       <div id="login-box" class="auth-box">
         <div class="auth-brand">
           <h2 id="auth-site-title">CODE AI STUDIO</h2>
-          <p>ورود مستقیم و امن به استودیو هوش مصنوعی کدنویسی</p>
+          <p>ثبت‌نام و ورود سریع با دریافت ۱۵ اعتبار هدیه</p>
         </div>
 
-        <!-- دکمه رسمی و مستقیم شرکت گوگل -->
+        <!-- دکمه رسمی ثبت‌نام و ورود مستقیم با گوگل -->
         <div id="google-btn-container" class="google-wrapper"></div>
 
         <div class="auth-divider">
-          <span>یا ورود با ایمیل و رمز عبور (مدیریت)</span>
+          <span>یا ورود به حساب‌های از قبل ثبت‌شده</span>
         </div>
 
-        <!-- فرم ورود مستقیم مدیریت -->
+        <!-- فرم ورود عمومی با ایمیل و پسورد (برای همه کاربران و مدیریت) -->
         <form id="login-form">
           <div class="input-group">
             <i class="fa-solid fa-envelope"></i>
-            <input type="email" id="login-email" placeholder="ایمیل مدیریت" required>
+            <input type="email" id="login-email" placeholder="ایمیل خود را وارد کنید" required>
           </div>
           <div class="input-group">
             <i class="fa-solid fa-lock"></i>
             <input type="password" id="login-password" placeholder="رمز عبور" required>
           </div>
-          <button type="submit" class="btn-primary">ورود به حساب</button>
+          <button type="submit" class="btn-primary">ورود به حساب کاربری</button>
         </form>
       </div>
     </section>
@@ -302,7 +302,7 @@
             <h3>تنظیمات کلاینت ورود گوگل (Google Client ID)</h3>
             <div class="input-group">
               <label>Google OAuth Client ID:</label>
-              <input type="text" id="setting-google-client-id" placeholder="مثال: xxxxxxxx.apps.googleusercontent.com">
+              <input type="text" id="setting-google-client-id" placeholder="مثال: 305751111429-6ribodttr55u4p6gbchnqlea1b75o8cs.apps.googleusercontent.com">
             </div>
 
             <hr style="margin: 1.5rem 0; border: 1px solid var(--glass-border);">
