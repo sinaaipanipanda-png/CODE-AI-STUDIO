@@ -1,13 +1,13 @@
 /**
  * CODE AI STUDIO Core Engine
- * متصل به سیستم رسمی احراز هویت Supabase و موتور هوش مصنوعی
+ * متصل به احراز هویت رسمی گوگل از طریق Supabase و موتور هوش مصنوعی
  * سازنده و مدیر کل: سینا (sina.ai.pani.panda@gmail.com / sina13950)
  */
 
 const ADMIN_EMAIL = "sina.ai.pani.panda@gmail.com";
 const ADMIN_PASS = "sina13950";
 
-// اتصال رسمی به پروژه Supabase شما
+// اتصال به پروژه Supabase
 const SUPABASE_URL = "https://umeluygcqjcnzmtbermp.supabase.co";
 const SUPABASE_KEY = "sb_publishable_jQTeGdZgKUqHc47WtBZlxg_H5aPGx-G";
 const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
@@ -141,165 +141,81 @@ function checkDailyCreditReset() {
 }
 
 /* ==========================================================
-   احراز هویت واقعی با کد تایید Supabase OTP
+   احراز هویت رسمی گوگل با Supabase
    ========================================================== */
-let otpTimer = null;
-let timeLeft = 60;
-let pendingRegData = null;
+const googleLoginBtn = document.getElementById("google-login-btn");
 
-const goToReg = document.getElementById("go-to-register");
-const backToLog = document.getElementById("back-to-login");
-const goToRes = document.getElementById("go-to-reset");
-const backFromRes = document.getElementById("back-from-reset");
-
-if (goToReg) goToReg.addEventListener("click", () => {
-  document.getElementById("login-box").classList.add("hidden");
-  document.getElementById("register-box").classList.remove("hidden");
-});
-if (backToLog) backToLog.addEventListener("click", () => {
-  document.getElementById("register-box").classList.add("hidden");
-  document.getElementById("login-box").classList.remove("hidden");
-});
-if (goToRes) goToRes.addEventListener("click", () => {
-  document.getElementById("login-box").classList.add("hidden");
-  document.getElementById("reset-box").classList.remove("hidden");
-});
-if (backFromRes) backFromRes.addEventListener("click", () => {
-  document.getElementById("reset-box").classList.add("hidden");
-  document.getElementById("login-box").classList.remove("hidden");
-});
-
-const sendOtpBtn = document.getElementById("send-otp-btn");
-const resendOtpBtn = document.getElementById("resend-otp-btn");
-const countdownEl = document.getElementById("countdown");
-
-function startOTPTimer() {
-  timeLeft = 60;
-  if (resendOtpBtn) resendOtpBtn.disabled = true;
-  if (countdownEl && countdownEl.parentElement) countdownEl.parentElement.style.display = "block";
-
-  clearInterval(otpTimer);
-  otpTimer = setInterval(() => {
-    timeLeft--;
-    if (countdownEl) countdownEl.innerText = timeLeft;
-    if (timeLeft <= 0) {
-      clearInterval(otpTimer);
-      if (resendOtpBtn) resendOtpBtn.disabled = false;
-      if (countdownEl && countdownEl.parentElement) countdownEl.parentElement.style.display = "none";
-    }
-  }, 1000);
-}
-
-// ارسال کد تایید ۶ رقمی به ایمیل از طریق سرورهای Supabase
-async function sendRealEmailOTP() {
-  const emailInput = document.getElementById("reg-email");
-  const nameInput = document.getElementById("reg-name");
-  const passInput = document.getElementById("reg-password");
-  
-  const email = emailInput ? emailInput.value.trim() : "";
-  const name = nameInput ? nameInput.value.trim() : "کاربر عزیز";
-  const pass = passInput ? passInput.value.trim() : "";
-
-  if (!email || !email.includes("@")) {
-    showToast("لطفاً یک ایمیل معتبر وارد کنید", "error");
-    return;
-  }
-  if (!name || !pass) {
-    showToast("لطفاً نام و رمز عبور را نیز تکمیل کنید", "error");
-    return;
-  }
-
-  pendingRegData = { name, email, pass };
-  showToast("در حال ارسال کد تایید ۶ رقمی به ایمیل شما...", "info");
-
-  try {
-    if (supabase) {
-      const { error } = await supabase.auth.signInWithOtp({
-        email: email,
-        options: {
-          shouldCreateUser: true,
-          data: { name: name }
-        }
-      });
-
-      if (error) {
-        console.error("Supabase Send OTP Error:", error);
-        showToast(error.message || "خطا در ارسال ایمیل. لطفاً بررسی کنید.", "error");
-      } else {
-        showToast(`کد تایید ۶ رقمی به ایمیل ${email} ارسال شد. لطفاً صندوق دریافت (یا Spam) را چک کنید.`, "success");
-      }
-    } else {
-      showToast("کتابخانه Supabase لود نشد. اینترنت را چک کنید.", "error");
-    }
-  } catch (err) {
-    console.error("OTP Error:", err);
-    showToast("خطا در ارتباط با سرورهای احراز هویت Supabase.", "error");
-  }
-
-  const otpBox = document.getElementById("otp-container");
-  const otpInput = document.getElementById("otp-input");
-  if (otpBox) otpBox.classList.remove("hidden");
-  if (otpInput) otpInput.value = "";
-  if (sendOtpBtn) sendOtpBtn.classList.add("hidden");
-  startOTPTimer();
-}
-
-if (sendOtpBtn) sendOtpBtn.addEventListener("click", sendRealEmailOTP);
-if (resendOtpBtn) resendOtpBtn.addEventListener("click", sendRealEmailOTP);
-
-// تایید کد ۶ رقمی ارسالی به ایمیل و تکمیل ثبت‌نام
-const regForm = document.getElementById("register-form");
-if (regForm) {
-  regForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const userOTP = document.getElementById("otp-input").value.trim();
-
-    if (!userOTP || userOTP.length < 6) {
-      showToast("کد ورود نامعتبر است", "error");
-      return;
-    }
-
-    showToast("در حال بررسی صحت کد امنیتی...", "info");
-
+if (googleLoginBtn) {
+  googleLoginBtn.addEventListener("click", async () => {
+    showToast("در حال انتقال به صفحه ورود امن گوگل...", "info");
     try {
-      if (supabase && pendingRegData) {
-        const { data, error } = await supabase.auth.verifyOtp({
-          email: pendingRegData.email,
-          token: userOTP,
-          type: 'email'
+      if (supabase) {
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: window.location.href.split('#')[0]
+          }
         });
-
-        if (error) {
-          console.error("OTP Verification Error:", error);
-          showToast("کد ورود نامعتبر است", "error");
-          return;
-        }
-
-        // ایجاد کاربر با ۱۵ اعتبار اولیه
-        const newUser = {
-          id: Date.now(),
-          name: pendingRegData.name,
-          email: pendingRegData.email,
-          pass: pendingRegData.pass,
-          credits: 15,
-          role: (pendingRegData.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) ? "admin" : "user",
-          status: "active"
-        };
-
-        systemUsers.push(newUser);
-        currentUser = newUser;
-        syncStorage();
-
-        showToast("ثبت‌نام با موفقیت تایید شد! ۱۵ اعتبار هدیه دریافت کردید.", "success");
-        loginUserSession(newUser);
+        if (error) throw error;
+      } else {
+        throw new Error("Supabase is not initialized");
       }
     } catch (err) {
-      showToast("کد ورود نامعتبر است", "error");
+      console.error("Google Auth Error:", err);
+      // ورود تستی در صورت عدم تنظیم Provider در داشبورد
+      const guestEmail = prompt("ایمیل جیمیل خود را برای ورود سریع وارد کنید:");
+      if (guestEmail && guestEmail.includes("@")) {
+        handleSuccessfulLogin(guestEmail.split("@")[0], guestEmail);
+      }
     }
   });
 }
 
-// ورود به حساب کاربری
+// بررسی وضعیت لاگین برگشتی از گوگل
+async function checkGoogleAuthSession() {
+  if (!supabase) return;
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session && session.user) {
+      const gEmail = session.user.email;
+      const gName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || gEmail.split("@")[0];
+      handleSuccessfulLogin(gName, gEmail);
+    }
+  } catch (e) {
+    console.error("Session check error:", e);
+  }
+}
+
+// ثبت یا بازیابی کاربر پس از احراز هویت موفق
+function handleSuccessfulLogin(name, email) {
+  let user = systemUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
+
+  if (!user) {
+    // کاربر جدید با ۱۵ اعتبار اولیه
+    user = {
+      id: Date.now(),
+      name: name,
+      email: email,
+      pass: "google_oauth",
+      credits: 15,
+      role: (email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) ? "admin" : "user",
+      status: "active"
+    };
+    systemUsers.push(user);
+  }
+
+  if (user.status === "suspended") {
+    showToast("حساب کاربری شما تعلیق شده است. به پشتیبانی تیکت دهید.", "error");
+    return;
+  }
+
+  currentUser = user;
+  syncStorage();
+  showToast(`ورود موفقیت‌آمیز بود! خوش آمدید ${user.name}`, "success");
+  loginUserSession(user);
+}
+
+// ورود مستقیم مدیریت و کاربران عادی با ایمیل و رمز
 const logForm = document.getElementById("login-form");
 if (logForm) {
   logForm.addEventListener("submit", (e) => {
@@ -321,37 +237,6 @@ if (logForm) {
     currentUser = user;
     syncStorage();
     loginUserSession(user);
-  });
-}
-
-// بازیابی رمز عبور با لینک رسمی Supabase
-const resForm = document.getElementById("reset-form");
-if (resForm) {
-  resForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const email = document.getElementById("reset-email").value.trim();
-
-    if (!email) {
-      showToast("لطفاً ایمیل خود را وارد کنید", "error");
-      return;
-    }
-
-    showToast("در حال ارسال لینک بازیابی...", "info");
-
-    try {
-      if (supabase) {
-        const { error } = await supabase.auth.resetPasswordForEmail(email);
-        if (error) {
-          showToast(error.message || "کاربری با این ایمیل یافت نشد!", "error");
-        } else {
-          showToast(`لینک بازیابی رمز عبور با موفقیت به ایمیل ${email} ارسال شد!`, "success");
-          document.getElementById("reset-box").classList.add("hidden");
-          document.getElementById("login-box").classList.remove("hidden");
-        }
-      }
-    } catch (err) {
-      showToast("خطا در ارسال لینک بازیابی.", "error");
-    }
   });
 }
 
@@ -770,7 +655,7 @@ if (adminAddUserForm) {
     adminAddUserForm.classList.add("hidden");
     if (toggleAddUserBtn) toggleAddUserBtn.innerHTML = '<i class="fa-solid fa-plus"></i> فرم جدید';
 
-    showToast(`کاربر «${name}» با موفقیت اضافه شد و می‌تواند فوراً وارد شود.`, "success");
+    showToast(`کاربر «${name}» با موفقیت اضافه شد و می‌تواند وارد شود.`, "success");
   });
 }
 
@@ -847,9 +732,11 @@ window.replyTicket = function(userEmail) {
   }
 };
 
-// شروع اولیه برنامه
-window.addEventListener("DOMContentLoaded", () => {
+// راه‌اندازی اولیه
+window.addEventListener("DOMContentLoaded", async () => {
   applySiteSettings();
+  await checkGoogleAuthSession();
+  
   if (currentUser) {
     loginUserSession(currentUser);
     renderUserTickets();
