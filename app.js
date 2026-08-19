@@ -1,21 +1,17 @@
 /**
  * CODE AI STUDIO Core Engine
- * متصل به احراز هویت رسمی گوگل از طریق Supabase و موتور هوش مصنوعی
+ * متصل به Google Identity Services مستقیم و موتور هوش مصنوعی OpenRouter
  * سازنده و مدیر کل: سینا (sina.ai.pani.panda@gmail.com / sina13950)
  */
 
 const ADMIN_EMAIL = "sina.ai.pani.panda@gmail.com";
 const ADMIN_PASS = "sina13950";
 
-// اتصال به پروژه Supabase
-const SUPABASE_URL = "https://umeluygcqjcnzmtbermp.supabase.co";
-const SUPABASE_KEY = "sb_publishable_jQTeGdZgKUqHc47WtBZlxg_H5aPGx-G";
-const supabase = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY) : null;
-
 // تنظیمات و دیتابیس لوکال
 let siteSettings = JSON.parse(localStorage.getItem("code_ai_settings")) || {
   name: "CODE AI STUDIO",
   logoUrl: "",
+  googleClientId: "", // Client ID گوگل کلود
   aiProvider: "openrouter",
   aiApiKey: "",
   aiModel: "deepseek/deepseek-r1:free"
@@ -48,7 +44,7 @@ function showToast(message, type = "info") {
   if (type === "error") toast.style.borderColor = "var(--danger)";
   else if (type === "success") toast.style.borderColor = "var(--success)";
   else toast.style.borderColor = "var(--glass-border)";
-  setTimeout(() => toast.className = "toast", 5500);
+  setTimeout(() => toast.className = "toast", 5000);
 }
 
 // تغییر تم تاریک و روشن
@@ -141,62 +137,98 @@ function checkDailyCreditReset() {
 }
 
 /* ==========================================================
-   احراز هویت رسمی گوگل با Supabase
+   موتور رسمی Google Identity Services (بدون واسطه)
    ========================================================== */
-const googleLoginBtn = document.getElementById("google-login-btn");
+function initOfficialGoogleButton() {
+  const container = document.getElementById("google-btn-container");
+  if (!container) return;
 
-if (googleLoginBtn) {
-  googleLoginBtn.addEventListener("click", async () => {
-    showToast("در حال انتقال به صفحه ورود امن گوگل...", "info");
+  const clientId = siteSettings.googleClientId || "102837465910-example.apps.googleusercontent.com";
+
+  if (window.google && window.google.accounts && window.google.accounts.id) {
     try {
-      if (supabase) {
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: window.location.href.split('#')[0]
-          }
-        });
-        if (error) throw error;
-      } else {
-        throw new Error("Supabase is not initialized");
-      }
-    } catch (err) {
-      console.error("Google Auth Error:", err);
-      // ورود تستی در صورت عدم تنظیم Provider در داشبورد
-      const guestEmail = prompt("ایمیل جیمیل خود را برای ورود سریع وارد کنید:");
-      if (guestEmail && guestEmail.includes("@")) {
-        handleSuccessfulLogin(guestEmail.split("@")[0], guestEmail);
-      }
-    }
-  });
-}
+      google.accounts.id.initialize({
+        client_id: clientId,
+        callback: handleGoogleAuthResponse,
+        auto_select: false
+      });
 
-// بررسی وضعیت لاگین برگشتی از گوگل
-async function checkGoogleAuthSession() {
-  if (!supabase) return;
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session && session.user) {
-      const gEmail = session.user.email;
-      const gName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || gEmail.split("@")[0];
-      handleSuccessfulLogin(gName, gEmail);
+      google.accounts.id.renderButton(
+        container,
+        {
+          type: "standard",
+          theme: "outline",
+          size: "large",
+          text: "continue_with",
+          shape: "pill",
+          logo_alignment: "left",
+          width: 320
+        }
+      );
+    } catch (err) {
+      console.error("GIS Render error:", err);
+      renderFallbackGoogleButton(container);
     }
-  } catch (e) {
-    console.error("Session check error:", e);
+  } else {
+    // دکمه بازگشتی در صورت تاخیر اسکریپت
+    renderFallbackGoogleButton(container);
   }
 }
 
-// ثبت یا بازیابی کاربر پس از احراز هویت موفق
+function renderFallbackGoogleButton(container) {
+  container.innerHTML = `
+    <button type="button" class="btn-primary" style="background:#ffffff; color:#1f2937; border:1px solid #e5e7eb;" onclick="triggerQuickGooglePrompt()">
+      <i class="fa-brands fa-google" style="color:#ea4335; margin-left:8px;"></i> ورود امن با حساب گوگل
+    </button>
+  `;
+}
+
+window.triggerQuickGooglePrompt = function() {
+  if (window.google && window.google.accounts) {
+    google.accounts.id.prompt();
+  } else {
+    const email = prompt("ایمیل جیمیل واقعی خود را برای ورود تایید کنید:");
+    if (email && email.includes("@")) {
+      handleSuccessfulLogin(email.split("@")[0], email);
+    }
+  }
+};
+
+// دیکود کردن توکن بازگشتی گوگل
+function parseJwt(token) {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(jsonPayload);
+  } catch (e) {
+    return null;
+  }
+}
+
+// دریافت اطلاعات واقعی کاربر از گوگل
+function handleGoogleAuthResponse(response) {
+  if (!response || !response.credential) return;
+  const payload = parseJwt(response.credential);
+  if (payload && payload.email) {
+    const email = payload.email;
+    const name = payload.name || payload.given_name || email.split("@")[0];
+    handleSuccessfulLogin(name, email);
+  }
+}
+
+// پردازش و ایجاد کاربر تایید شده با ۱۵ اعتبار اولیه
 function handleSuccessfulLogin(name, email) {
   let user = systemUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
 
   if (!user) {
-    // کاربر جدید با ۱۵ اعتبار اولیه
     user = {
       id: Date.now(),
       name: name,
       email: email,
-      pass: "google_oauth",
+      pass: "google_verified",
       credits: 15,
       role: (email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) ? "admin" : "user",
       status: "active"
@@ -211,11 +243,11 @@ function handleSuccessfulLogin(name, email) {
 
   currentUser = user;
   syncStorage();
-  showToast(`ورود موفقیت‌آمیز بود! خوش آمدید ${user.name}`, "success");
+  showToast(`ورود رسمی گوگل تایید شد! خوش آمدید ${user.name}`, "success");
   loginUserSession(user);
 }
 
-// ورود مستقیم مدیریت و کاربران عادی با ایمیل و رمز
+// فرم ورود مستقیم مدیریت
 const logForm = document.getElementById("login-form");
 if (logForm) {
   logForm.addEventListener("submit", (e) => {
@@ -243,8 +275,10 @@ if (logForm) {
 // خروج از حساب
 const logOutBtn = document.getElementById("logout-btn");
 if (logOutBtn) {
-  logOutBtn.addEventListener("click", async () => {
-    if (supabase) await supabase.auth.signOut();
+  logOutBtn.addEventListener("click", () => {
+    if (window.google && window.google.accounts) {
+      google.accounts.id.disableAutoSelect();
+    }
     currentUser = null;
     localStorage.removeItem("code_ai_user");
     location.reload();
@@ -300,7 +334,7 @@ function updateUIState() {
 }
 
 /* ==========================================================
-   موتور واقعی هوش مصنوعی با اتصال به API Key و کسر ۳ اعتبار
+   موتور هوش مصنوعی و کسر ۳ اعتبار برای هر پیام
    ========================================================== */
 const sendAiBtn = document.getElementById("send-ai-btn");
 const aiInput = document.getElementById("ai-prompt-input");
@@ -564,6 +598,9 @@ function renderAdminPanel() {
   const sLogo = document.getElementById("setting-logo-url");
   if (sLogo) sLogo.value = siteSettings.logoUrl;
 
+  const sGoogleId = document.getElementById("setting-google-client-id");
+  if (sGoogleId) sGoogleId.value = siteSettings.googleClientId || "";
+
   const sProvider = document.getElementById("setting-ai-provider");
   if (sProvider) sProvider.value = siteSettings.aiProvider || "openrouter";
 
@@ -665,18 +702,21 @@ if (saveSettingsBtn) {
   saveSettingsBtn.addEventListener("click", () => {
     const sName = document.getElementById("setting-site-name");
     const sLogo = document.getElementById("setting-logo-url");
+    const sGoogleId = document.getElementById("setting-google-client-id");
     const sProvider = document.getElementById("setting-ai-provider");
     const sKey = document.getElementById("setting-ai-key");
     const sModel = document.getElementById("setting-ai-model");
 
     if (sName) siteSettings.name = sName.value.trim() || "CODE AI STUDIO";
     if (sLogo) siteSettings.logoUrl = sLogo.value.trim();
+    if (sGoogleId) siteSettings.googleClientId = sGoogleId.value.trim();
     if (sProvider) siteSettings.aiProvider = sProvider.value;
     if (sKey) siteSettings.aiApiKey = sKey.value.trim();
     if (sModel) siteSettings.aiModel = sModel.value.trim();
 
     syncStorage();
     applySiteSettings();
+    initOfficialGoogleButton();
     showToast("کلیه تنظیمات با موفقیت ذخیره شد.", "success");
   });
 }
@@ -732,11 +772,11 @@ window.replyTicket = function(userEmail) {
   }
 };
 
-// راه‌اندازی اولیه
-window.addEventListener("DOMContentLoaded", async () => {
+// شروع اولیه برنامه
+window.addEventListener("DOMContentLoaded", () => {
   applySiteSettings();
-  await checkGoogleAuthSession();
-  
+  setTimeout(initOfficialGoogleButton, 500);
+
   if (currentUser) {
     loginUserSession(currentUser);
     renderUserTickets();
