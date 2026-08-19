@@ -13,8 +13,8 @@
   <!-- آیکون‌های FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- کتابخانه رسمی Supabase برای اتصال ورود به گوگل -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- اسکریپت رسمی ورود مستقیم گوگل (Google Identity Services) -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   
   <link rel="stylesheet" href="style.css">
 </head>
@@ -64,34 +64,26 @@
   <!-- بخش اصلی برنامه -->
   <main class="main-container">
 
-    <!-- ۱. فرم ورود رسمی گوگل و مدیریت -->
+    <!-- ۱. بخش ورود رسمی گوگل و مدیریت -->
     <section id="auth-section" class="page-section glass-card">
       <div id="login-box" class="auth-box">
         <div class="auth-brand">
           <h2 id="auth-site-title">CODE AI STUDIO</h2>
-          <p>ورود امن به استودیو هوش مصنوعی کدنویسی</p>
+          <p>ورود مستقیم و امن به استودیو هوش مصنوعی کدنویسی</p>
         </div>
 
-        <!-- دکمه رسمی ورود با گوگل -->
-        <button id="google-login-btn" class="btn-google">
-          <svg class="google-icon" viewBox="0 0 48 48">
-            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
-            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
-            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
-            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
-          </svg>
-          ورود سریع و امن با حساب گوگل
-        </button>
+        <!-- دکمه رسمی و مستقیم شرکت گوگل -->
+        <div id="google-btn-container" class="google-wrapper"></div>
 
         <div class="auth-divider">
-          <span>یا ورود با ایمیل و رمز عبور</span>
+          <span>یا ورود با ایمیل و رمز عبور (مدیریت)</span>
         </div>
 
-        <!-- فرم ورود مستقیم و مدیریت -->
+        <!-- فرم ورود مستقیم مدیریت -->
         <form id="login-form">
           <div class="input-group">
             <i class="fa-solid fa-envelope"></i>
-            <input type="email" id="login-email" placeholder="ایمیل خود را وارد کنید" required>
+            <input type="email" id="login-email" placeholder="ایمیل مدیریت" required>
           </div>
           <div class="input-group">
             <i class="fa-solid fa-lock"></i>
@@ -303,6 +295,14 @@
                 <label>نام مدل مد نظر (اختیاری):</label>
                 <input type="text" id="setting-ai-model" placeholder="پیش‌فرض: deepseek/deepseek-r1:free">
               </div>
+            </div>
+
+            <hr style="margin: 1.5rem 0; border: 1px solid var(--glass-border);">
+
+            <h3>تنظیمات کلاینت ورود گوگل (Google Client ID)</h3>
+            <div class="input-group">
+              <label>Google OAuth Client ID:</label>
+              <input type="text" id="setting-google-client-id" placeholder="مثال: xxxxxxxx.apps.googleusercontent.com">
             </div>
 
             <hr style="margin: 1.5rem 0; border: 1px solid var(--glass-border);">
