@@ -1,17 +1,21 @@
 /**
  * CODE AI STUDIO Core Engine
- * متصل به Google Identity Services مستقیم و موتور هوش مصنوعی OpenRouter
+ * متصل به سیستم رسمی Google Identity Services و هوش مصنوعی
+ * شناسه رسمی گوگل: 305751111429-6ribodttr55u4p6gbchnqlea1b75o8cs.apps.googleusercontent.com
  * سازنده و مدیر کل: سینا (sina.ai.pani.panda@gmail.com / sina13950)
  */
 
 const ADMIN_EMAIL = "sina.ai.pani.panda@gmail.com";
 const ADMIN_PASS = "sina13950";
 
+// شناسه اختصاصی Google Client ID شما
+const GOOGLE_CLIENT_ID = "305751111429-6ribodttr55u4p6gbchnqlea1b75o8cs.apps.googleusercontent.com";
+
 // تنظیمات و دیتابیس لوکال
 let siteSettings = JSON.parse(localStorage.getItem("code_ai_settings")) || {
   name: "CODE AI STUDIO",
   logoUrl: "",
-  googleClientId: "", // Client ID گوگل کلود
+  googleClientId: GOOGLE_CLIENT_ID,
   aiProvider: "openrouter",
   aiApiKey: "",
   aiModel: "deepseek/deepseek-r1:free"
@@ -137,13 +141,13 @@ function checkDailyCreditReset() {
 }
 
 /* ==========================================================
-   موتور رسمی Google Identity Services (بدون واسطه)
+   موتور رسمی ورود گوگل (Google Identity Services)
    ========================================================== */
 function initOfficialGoogleButton() {
   const container = document.getElementById("google-btn-container");
   if (!container) return;
 
-  const clientId = siteSettings.googleClientId || "102837465910-example.apps.googleusercontent.com";
+  const clientId = siteSettings.googleClientId || GOOGLE_CLIENT_ID;
 
   if (window.google && window.google.accounts && window.google.accounts.id) {
     try {
@@ -153,6 +157,7 @@ function initOfficialGoogleButton() {
         auto_select: false
       });
 
+      container.innerHTML = ""; // پاکسازی کانتینر
       google.accounts.id.renderButton(
         container,
         {
@@ -166,35 +171,31 @@ function initOfficialGoogleButton() {
         }
       );
     } catch (err) {
-      console.error("GIS Render error:", err);
+      console.error("Google Render Error:", err);
       renderFallbackGoogleButton(container);
     }
   } else {
-    // دکمه بازگشتی در صورت تاخیر اسکریپت
     renderFallbackGoogleButton(container);
   }
 }
 
 function renderFallbackGoogleButton(container) {
   container.innerHTML = `
-    <button type="button" class="btn-primary" style="background:#ffffff; color:#1f2937; border:1px solid #e5e7eb;" onclick="triggerQuickGooglePrompt()">
+    <button type="button" class="btn-primary" style="background:#ffffff; color:#1f2937; border:1px solid #e5e7eb; font-weight:bold;" onclick="triggerQuickGooglePrompt()">
       <i class="fa-brands fa-google" style="color:#ea4335; margin-left:8px;"></i> ورود امن با حساب گوگل
     </button>
   `;
 }
 
 window.triggerQuickGooglePrompt = function() {
-  if (window.google && window.google.accounts) {
+  if (window.google && window.google.accounts && window.google.accounts.id) {
     google.accounts.id.prompt();
   } else {
-    const email = prompt("ایمیل جیمیل واقعی خود را برای ورود تایید کنید:");
-    if (email && email.includes("@")) {
-      handleSuccessfulLogin(email.split("@")[0], email);
-    }
+    showToast("در حال لود کتابخانه گوگل... چند لحظه بعد تلاش کنید.", "info");
   }
 };
 
-// دیکود کردن توکن بازگشتی گوگل
+// دیکود کردن توکن امنیتی JWT برگشتی از گوگل
 function parseJwt(token) {
   try {
     const base64Url = token.split('.')[1];
@@ -208,10 +209,11 @@ function parseJwt(token) {
   }
 }
 
-// دریافت اطلاعات واقعی کاربر از گوگل
+// دریافت اطلاعات تایید شده کاربر از سرور گوگل
 function handleGoogleAuthResponse(response) {
   if (!response || !response.credential) return;
   const payload = parseJwt(response.credential);
+  
   if (payload && payload.email) {
     const email = payload.email;
     const name = payload.name || payload.given_name || email.split("@")[0];
@@ -219,7 +221,7 @@ function handleGoogleAuthResponse(response) {
   }
 }
 
-// پردازش و ایجاد کاربر تایید شده با ۱۵ اعتبار اولیه
+// پردازش و ایجاد حساب با ۱۵ اعتبار اولیه
 function handleSuccessfulLogin(name, email) {
   let user = systemUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
 
@@ -228,7 +230,7 @@ function handleSuccessfulLogin(name, email) {
       id: Date.now(),
       name: name,
       email: email,
-      pass: "google_verified",
+      pass: "google_oauth_verified",
       credits: 15,
       role: (email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) ? "admin" : "user",
       status: "active"
@@ -243,7 +245,7 @@ function handleSuccessfulLogin(name, email) {
 
   currentUser = user;
   syncStorage();
-  showToast(`ورود رسمی گوگل تایید شد! خوش آمدید ${user.name}`, "success");
+  showToast(`ورود موفقیت‌آمیز بود! خوش آمدید ${user.name}`, "success");
   loginUserSession(user);
 }
 
@@ -599,7 +601,7 @@ function renderAdminPanel() {
   if (sLogo) sLogo.value = siteSettings.logoUrl;
 
   const sGoogleId = document.getElementById("setting-google-client-id");
-  if (sGoogleId) sGoogleId.value = siteSettings.googleClientId || "";
+  if (sGoogleId) sGoogleId.value = siteSettings.googleClientId || GOOGLE_CLIENT_ID;
 
   const sProvider = document.getElementById("setting-ai-provider");
   if (sProvider) sProvider.value = siteSettings.aiProvider || "openrouter";
@@ -772,10 +774,19 @@ window.replyTicket = function(userEmail) {
   }
 };
 
-// شروع اولیه برنامه
+// راه‌اندازی اولیه برنامه
 window.addEventListener("DOMContentLoaded", () => {
   applySiteSettings();
-  setTimeout(initOfficialGoogleButton, 500);
+  
+  // تلاش برای ساخت دکمه رسمی گوگل
+  let checkGoogleLoaded = setInterval(() => {
+    if (window.google && window.google.accounts) {
+      initOfficialGoogleButton();
+      clearInterval(checkGoogleLoaded);
+    }
+  }, 300);
+
+  setTimeout(() => clearInterval(checkGoogleLoaded), 5000);
 
   if (currentUser) {
     loginUserSession(currentUser);
