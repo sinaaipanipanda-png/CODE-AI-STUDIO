@@ -72,14 +72,14 @@
           <p>ثبت‌نام و ورود سریع با دریافت ۱۵ اعتبار هدیه</p>
         </div>
 
-        <!-- دکمه رسمی ثبت‌نام و ورود مستقیم با گوگل -->
+        <!-- دکمه رسمی ثبت‌نام و ورود با گوگل -->
         <div id="google-btn-container" class="google-wrapper"></div>
 
         <div class="auth-divider">
           <span>یا ورود به حساب‌های از قبل ثبت‌شده</span>
         </div>
 
-        <!-- فرم ورود عمومی با ایمیل و پسورد (برای همه کاربران و مدیریت) -->
+        <!-- فرم ورود عمومی با ایمیل و پسورد -->
         <form id="login-form">
           <div class="input-group">
             <i class="fa-solid fa-envelope"></i>
@@ -125,20 +125,20 @@
           <div class="ai-info">
             <div class="ai-avatar"><i class="fa-solid fa-robot"></i></div>
             <div>
-              <h3 id="ai-assistant-title">دستیار فوق هوشمند CODE AI STUDIO</h3>
-              <small>تولید کدهای واقعی، تابعی و کامل | هر پیام = ۳ اعتبار</small>
+              <h3 id="ai-assistant-title">دستیار هوشمند DeepSeek | CODE AI STUDIO</h3>
+              <small>تولید کدهای واقعی، حرفه‌ای و کامل | هر پیام = ۳ اعتبار</small>
             </div>
           </div>
         </div>
         
         <div class="chat-messages" id="ai-chat-box">
           <div class="msg bot-msg">
-            سلام! چه سایتی یا چه کدی برات بنویسم؟ ایده، امکانات یا زبان مد نظرت رو بگو تا به بهترین شکل برات کد بزنم!
+            سلام! چه سایتی یا چه کدی برات بنویسم؟ ایده، امکانات یا زبان مد نظرت رو بگو تا با هوش مصنوعی واقعی DeepSeek کامل و دقیق برات بنویسم!
           </div>
         </div>
 
         <div class="chat-input-box">
-          <textarea id="ai-prompt-input" rows="2" placeholder="توضیح دهید چه کدی می‌خواهید (مثلاً: یک صفحه لندینگ شیک با انیمیشن)..."></textarea>
+          <textarea id="ai-prompt-input" rows="2" placeholder="توضیح دهید چه کدی می‌خواهید (مثلاً: یک صفحه لاگین مدرن شیشه‌ای با اعتبارسنجی فرم)..."></textarea>
           <button id="send-ai-btn" class="send-btn"><i class="fa-solid fa-paper-plane"></i></button>
         </div>
       </div>
@@ -199,7 +199,7 @@
           <button class="tab-btn active" data-tab="admin-users"><i class="fa-solid fa-users"></i> لیست کاربران</button>
           <button class="tab-btn" data-tab="admin-chats"><i class="fa-solid fa-robot"></i> لیست گفتگوها</button>
           <button class="tab-btn" data-tab="admin-tickets"><i class="fa-solid fa-ticket"></i> لیست تیکت‌ها</button>
-          <button class="tab-btn" data-tab="admin-settings"><i class="fa-solid fa-gear"></i> تنظیمات سایت، لوگو و API هوش مصنوعی</button>
+          <button class="tab-btn" data-tab="admin-settings"><i class="fa-solid fa-gear"></i> تنظیمات سایت، لوگو و API دیپ‌سیک</button>
         </div>
 
         <!-- تب لیست کاربران -->
@@ -275,25 +275,26 @@
             
             <div class="api-highlight-box">
               <h3><i class="fa-solid fa-brain"></i> تنظیمات API هوش مصنوعی</h3>
-              <p class="subtitle" style="text-align: right; margin-bottom: 1rem;">کلید API خود را وارد کنید تا هوش مصنوعی واقعی به سایت متصل شود:</p>
+              <p class="subtitle" style="text-align: right; margin-bottom: 1rem;">سرویس و کلید API خود را وارد و ذخیره کنید:</p>
               
               <div class="input-group">
-                <label>سرویس هوش مصنوعی:</label>
+                <label>ارائه‌دهنده سرویس هوش مصنوعی:</label>
                 <select id="setting-ai-provider" class="glass-select">
-                  <option value="openrouter">OpenRouter (پشتیبانی از DeepSeek, Claude, GPT-4o)</option>
+                  <option value="deepseek">DeepSeek مستقیم (api.deepseek.com) ⭐ پیشنهادی</option>
+                  <option value="openrouter">OpenRouter (مدل‌های عمومی)</option>
                   <option value="openai">OpenAI مستقیم (ChatGPT)</option>
                   <option value="groq">Groq (سرعت فوق‌العاده بالا)</option>
                 </select>
               </div>
 
               <div class="input-group">
-                <label>کلید API هوش مصنوعی (API Key):</label>
-                <input type="password" id="setting-ai-key" placeholder="مثال: sk-or-v1-... یا sk-proj-...">
+                <label>کلید API دیپ‌سیک یا ارائه‌دهنده (API Key):</label>
+                <input type="password" id="setting-ai-key" placeholder="مثال: sk-xxxxxxxxxxxxxxxxxxxxxxxx">
               </div>
 
               <div class="input-group">
-                <label>نام مدل مد نظر (اختیاری):</label>
-                <input type="text" id="setting-ai-model" placeholder="پیش‌فرض: deepseek/deepseek-r1:free">
+                <label>نام مدل مد نظر (پیش‌فرض: deepseek-chat):</label>
+                <input type="text" id="setting-ai-model" placeholder="deepseek-chat یا deepseek-reasoner">
               </div>
             </div>
 
@@ -302,7 +303,7 @@
             <h3>تنظیمات کلاینت ورود گوگل (Google Client ID)</h3>
             <div class="input-group">
               <label>Google OAuth Client ID:</label>
-              <input type="text" id="setting-google-client-id" placeholder="مثال: 305751111429-6ribodttr55u4p6gbchnqlea1b75o8cs.apps.googleusercontent.com">
+              <input type="text" id="setting-google-client-id" placeholder="305751111429-6ribodttr55u4p6gbchnqlea1b75o8cs.apps.googleusercontent.com">
             </div>
 
             <hr style="margin: 1.5rem 0; border: 1px solid var(--glass-border);">
