@@ -1,28 +1,37 @@
 /**
  * CODE AI STUDIO Core Engine
- * متصل مستقیم به سرور رسمی DeepSeek (api.deepseek.com) و Google Identity
+ * متصل به پلتفرم ابری Puter.js با پشتیبانی از Claude 3.5, GPT-4o, DeepSeek (بدون فیلتر و رایگان)
+ * دارای قابلیت تعیین مدل همگانی و مدل اختصاصی برای هر کاربر
  * سازنده و مدیر کل: سینا (sina.ai.pani.panda@gmail.com / sina13950)
  */
 
 const ADMIN_EMAIL = "sina.ai.pani.panda@gmail.com";
 const ADMIN_PASS = "sina13950";
 
-// شناسه اختصاصی Google Client ID شما
+// شناسه رسمی Google Client ID شما
 const GOOGLE_CLIENT_ID = "305751111429-6ribodttr55u4p6gbchnqlea1b75o8cs.apps.googleusercontent.com";
 
-// تنظیمات و دیتابیس لوکال (پیش‌فرض متصل به DeepSeek مستقیم)
+// نام‌های فارسی و مدل‌ها
+const AI_MODEL_NAMES = {
+  "claude-3-5-sonnet": "Claude 3.5 Sonnet",
+  "gpt-4o": "GPT-4o",
+  "deepseek-chat": "DeepSeek Chat V3",
+  "deepseek-reasoner": "DeepSeek R1",
+  "gpt-4o-mini": "GPT-4o Mini",
+  "mistral-large-latest": "Mistral Large"
+};
+
+// تنظیمات سایت
 let siteSettings = JSON.parse(localStorage.getItem("code_ai_settings")) || {
   name: "CODE AI STUDIO",
   logoUrl: "",
   googleClientId: GOOGLE_CLIENT_ID,
-  aiProvider: "deepseek",
-  aiApiKey: "",
-  aiModel: "deepseek-chat"
+  defaultAiModel: "claude-3-5-sonnet" // مدل پیش‌فرض همگانی
 };
 
 let currentUser = JSON.parse(localStorage.getItem("code_ai_user")) || null;
 let systemUsers = JSON.parse(localStorage.getItem("code_ai_users_db")) || [
-  { id: 1, name: "سینا (مدیر کل)", email: ADMIN_EMAIL, pass: ADMIN_PASS, credits: 999, role: "admin", status: "active" }
+  { id: 1, name: "سینا (مدیر کل)", email: ADMIN_EMAIL, pass: ADMIN_PASS, credits: 999, role: "admin", status: "active", assignedModel: "claude-3-5-sonnet" }
 ];
 let systemTickets = JSON.parse(localStorage.getItem("code_ai_tickets_db")) || [];
 let aiConversations = JSON.parse(localStorage.getItem("code_ai_ai_db")) || [];
@@ -97,6 +106,14 @@ document.querySelectorAll(".nav-item[data-page]").forEach(btn => {
   btn.addEventListener("click", () => navigateTo(btn.dataset.page));
 });
 
+// تشخیص مدل اختصاصی کاربر یا مدل همگانی
+function getActiveAiModelForUser(user) {
+  if (user && user.assignedModel && user.assignedModel !== "default") {
+    return user.assignedModel;
+  }
+  return siteSettings.defaultAiModel || "claude-3-5-sonnet";
+}
+
 // اعمال تنظیمات نام سایت و لوگو
 function applySiteSettings() {
   const pageTitle = document.getElementById("page-title");
@@ -111,9 +128,6 @@ function applySiteSettings() {
     siteDisplay.innerHTML = `${parts[0] || "CODE"} <span>${parts.slice(1).join(" ") || "AI STUDIO"}</span>`;
   }
   
-  const aiTitle = document.getElementById("ai-assistant-title");
-  if (aiTitle) aiTitle.innerText = `دستیار هوشمند DeepSeek | ${siteSettings.name}`;
-  
   const logoImg = document.getElementById("site-logo-img");
   if (logoImg) {
     if (siteSettings.logoUrl) {
@@ -123,6 +137,19 @@ function applySiteSettings() {
       logoImg.classList.add("hidden");
     }
   }
+
+  updateActiveModelDisplay();
+}
+
+function updateActiveModelDisplay() {
+  const activeModel = getActiveAiModelForUser(currentUser);
+  const modelNameFa = AI_MODEL_NAMES[activeModel] || activeModel;
+  
+  const badge = document.getElementById("ai-active-model-badge");
+  if (badge) badge.innerText = `مدل فعال شما: ${modelNameFa} | هر پیام = ۳ اعتبار`;
+
+  const profModel = document.getElementById("prof-model");
+  if (profModel) profModel.innerText = modelNameFa;
 }
 
 // ریست خودکار ۱۵ اعتبار روزانه در ساعت ۰۰:۰۰
@@ -190,7 +217,7 @@ window.triggerQuickGooglePrompt = function() {
   if (window.google && window.google.accounts && window.google.accounts.id) {
     google.accounts.id.prompt();
   } else {
-    showToast("در حال لود کتابخانه گوگل... لطفاً چند ثانیه بعد مجدد بزنید.", "info");
+    showToast("در حال لود کتابخانه گوگل... لطفاً چند لحظه بعد مجدداً تلاش کنید.", "info");
   }
 };
 
@@ -229,7 +256,8 @@ function handleSuccessfulLogin(name, email) {
       pass: "google_oauth_verified",
       credits: 15,
       role: (email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) ? "admin" : "user",
-      status: "active"
+      status: "active",
+      assignedModel: "default"
     };
     systemUsers.push(user);
   }
@@ -321,6 +349,8 @@ function updateUIState() {
   const pStatus = document.getElementById("prof-status");
   if (pStatus) pStatus.innerText = currentUser.status === "active" ? "فعال" : "معلق";
 
+  updateActiveModelDisplay();
+
   const adminNav = document.getElementById("admin-nav-item");
   if (adminNav) {
     if (currentUser.email.toLowerCase() === ADMIN_EMAIL.toLowerCase() || currentUser.role === "admin") {
@@ -332,7 +362,7 @@ function updateUIState() {
 }
 
 /* ==========================================================
-   موتور هوش مصنوعی متصل مستقیم به API رسمی DeepSeek
+   موتور قدرتمند هوش مصنوعی Puter.js (بدون فیلتر و بدون نیاز به کلید)
    ========================================================== */
 const sendAiBtn = document.getElementById("send-ai-btn");
 const aiInput = document.getElementById("ai-prompt-input");
@@ -360,6 +390,10 @@ async function handleAiPrompt() {
     return;
   }
 
+  // تعیین مدل برای کاربر فعلی (اختصاصی یا همگانی)
+  const targetModel = getActiveAiModelForUser(currentUser);
+  const targetModelName = AI_MODEL_NAMES[targetModel] || targetModel;
+
   // کسر ۳ اعتبار
   currentUser.credits -= 3;
   syncStorage();
@@ -368,79 +402,40 @@ async function handleAiPrompt() {
   appendAiMessage("user", promptText);
   aiInput.value = "";
 
-  const loadingMsg = appendAiMessage("bot", "در حال ارتباط با هوش مصنوعی DeepSeek و تولید کدهای واقعی...");
+  const loadingMsg = appendAiMessage("bot", `در حال پردازش و تولید کدهای واقعی توسط ${targetModelName}...`);
 
   try {
     let generatedCode = "";
 
-    // اگر کلید API در پنل ادمین وارد شده باشد:
-    if (siteSettings.aiApiKey) {
-      let endpoint = "https://api.deepseek.com/chat/completions";
-      let model = siteSettings.aiModel || "deepseek-chat";
+    const systemPrompt = "You are an expert, senior full-stack developer at CODE AI STUDIO. Write clean, complete, fully functional, production-ready code with responsive design and modern styles. Always provide real and complete working code.";
 
-      if (siteSettings.aiProvider === "openrouter") {
-        endpoint = "https://openrouter.ai/api/v1/chat/completions";
-        model = siteSettings.aiModel || "deepseek/deepseek-r1:free";
-      } else if (siteSettings.aiProvider === "openai") {
-        endpoint = "https://api.openai.com/v1/chat/completions";
-        model = siteSettings.aiModel || "gpt-4o-mini";
-      } else if (siteSettings.aiProvider === "groq") {
-        endpoint = "https://api.groq.com/openai/v1/chat/completions";
-        model = siteSettings.aiModel || "llama-3.1-70b-versatile";
-      }
-
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${siteSettings.aiApiKey}`
-        },
-        body: JSON.stringify({
-          model: model,
-          messages: [
-            {
-              role: "system",
-              content: "You are an expert full-stack developer at CODE AI STUDIO. Write clean, complete, fully functional, production-ready code with responsive design and modern styles. Always provide real and complete working code."
-            },
-            {
-              role: "user",
-              content: promptText
-            }
-          ]
-        })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const detailedError = errorData.error ? (errorData.error.message || JSON.stringify(errorData.error)) : `کد خطا: ${response.status}`;
-        throw new Error(`خطای سرور هوش مصنوعی: ${detailedError}`);
-      }
-
-      const data = await response.json();
-      const choice = data.choices && data.choices[0] ? data.choices[0].message : null;
-      generatedCode = (choice && choice.content) ? choice.content : (choice && choice.reasoning_content ? choice.reasoning_content : "کدی تولید نشد.");
-
+    // فراخوانی مستقیم و پرسرعت Puter.js
+    if (window.puter && window.puter.ai && window.puter.ai.chat) {
+      const response = await puter.ai.chat(
+        `${systemPrompt}\n\nUser request: ${promptText}`,
+        { model: targetModel }
+      );
+      
+      generatedCode = response?.message?.content || response?.text || response?.toString() || "";
     } else {
-      // موتور رایگان آنلاین در صورت عدم وارد کردن کلید
-      const systemPrompt = "You are an expert full-stack developer at CODE AI STUDIO. Write clean, complete, fully functional, production-ready code. Always provide real working code.";
+      // موتور پشتیبان آنلاین در صورت نبود Puter
       const fallbackRes = await fetch(`https://text.pollinations.ai/${encodeURIComponent(promptText)}?system=${encodeURIComponent(systemPrompt)}&model=openai`);
       if (fallbackRes.ok) {
         generatedCode = await fallbackRes.text();
       } else {
-        throw new Error("سرویس هوش مصنوعی در دسترس نیست. لطفاً کلید DeepSeek را در پنل مدیریت وارد کنید.");
+        throw new Error("سرویس هوش مصنوعی در دسترس نیست.");
       }
     }
 
     const mandatoryClosingPitch = `\n\nاینم کد های سایت فوق العاده ات!\nاگرم میخوای تیم ما سایتت رو آنلاین کنه ( یعنی یک لینک تحویل بدیم که لینک سایتته) ، تیکت بده تا سازنده سایت ی لینک تر و تمیز تحویلت بده .`;
     
     loadingMsg.innerText = generatedCode + mandatoryClosingPitch;
-    aiConversations.push({ user: currentUser.email, prompt: promptText, reply: loadingMsg.innerText, date: new Date().toLocaleString("fa-IR") });
+    aiConversations.push({ user: currentUser.email, prompt: promptText, reply: loadingMsg.innerText, model: targetModelName, date: new Date().toLocaleString("fa-IR") });
     syncStorage();
 
   } catch (err) {
-    console.error("AI Error:", err);
-    // نمایش پیام خطای واقعی به جای کد تستی
-    loadingMsg.innerText = `⚠️ ${err.message || "خطا در برقراری ارتباط با DeepSeek"}\n\nلطفاً از صحت کلید API در پنل مدیریت و داشتن موجودی در platform.deepseek.com اطمینان حاصل کنید.`;
+    console.error("Puter AI Error:", err);
+    loadingMsg.innerText = `⚠️ خطا در برقراری ارتباط با هوش مصنوعی:\n${err.message || "لطفاً اینترنت خود را چک کنید."}`;
   }
 }
 
@@ -530,6 +525,7 @@ function renderAdminPanel() {
   if (tbody) {
     tbody.innerHTML = "";
     systemUsers.forEach(u => {
+      const assigned = u.assignedModel || "default";
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${u.name}</td>
@@ -539,6 +535,17 @@ function renderAdminPanel() {
             <input type="number" id="credit-input-${u.id}" value="${u.credits}" min="0" class="credit-input-field">
             <button class="btn-credit-save" onclick="setExactCredit(${u.id})"><i class="fa-solid fa-check"></i> ثبت</button>
           </div>
+        </td>
+        <td>
+          <select class="user-model-select" onchange="setUserAiModel(${u.id}, this.value)">
+            <option value="default" ${assigned === "default" ? "selected" : ""}>پیش‌فرض همگانی</option>
+            <option value="claude-3-5-sonnet" ${assigned === "claude-3-5-sonnet" ? "selected" : ""}>Claude 3.5 Sonnet</option>
+            <option value="gpt-4o" ${assigned === "gpt-4o" ? "selected" : ""}>GPT-4o</option>
+            <option value="deepseek-chat" ${assigned === "deepseek-chat" ? "selected" : ""}>DeepSeek Chat V3</option>
+            <option value="deepseek-reasoner" ${assigned === "deepseek-reasoner" ? "selected" : ""}>DeepSeek R1</option>
+            <option value="gpt-4o-mini" ${assigned === "gpt-4o-mini" ? "selected" : ""}>GPT-4o Mini</option>
+            <option value="mistral-large-latest" ${assigned === "mistral-large-latest" ? "selected" : ""}>Mistral Large</option>
+          </select>
         </td>
         <td><span class="${u.status === 'active' ? 'badge-active' : 'badge-admin'}">${u.status}</span></td>
         <td>${u.role}</td>
@@ -555,7 +562,7 @@ function renderAdminPanel() {
   if (logsBox) {
     logsBox.innerHTML = aiConversations.map(c => `
       <div style="background:rgba(255,255,255,0.05); padding:1rem; border-radius:10px; margin-bottom:0.8rem;">
-        <small style="color:var(--accent)">کاربر: ${c.user} | زمان: ${c.date}</small>
+        <small style="color:var(--accent)">کاربر: ${c.user} | مدل: ${c.model || "پیش‌فرض"} | زمان: ${c.date}</small>
         <p><strong>درخواست:</strong> ${c.prompt}</p>
       </div>
     `).join("") || "<p>هیچ گفتگویی ثبت نشده است.</p>";
@@ -572,7 +579,7 @@ function renderAdminPanel() {
     `).join("") || "<p>هیچ تیکتی وجود ندارد.</p>";
   }
 
-  // پر کردن فرم تنظیمات
+  // پر کردن فرم تنظیمات همگانی
   const sName = document.getElementById("setting-site-name");
   if (sName) sName.value = siteSettings.name;
   
@@ -582,14 +589,8 @@ function renderAdminPanel() {
   const sGoogleId = document.getElementById("setting-google-client-id");
   if (sGoogleId) sGoogleId.value = siteSettings.googleClientId || GOOGLE_CLIENT_ID;
 
-  const sProvider = document.getElementById("setting-ai-provider");
-  if (sProvider) sProvider.value = siteSettings.aiProvider || "deepseek";
-
-  const sKey = document.getElementById("setting-ai-key");
-  if (sKey) sKey.value = siteSettings.aiApiKey || "";
-
-  const sModel = document.getElementById("setting-ai-model");
-  if (sModel) sModel.value = siteSettings.aiModel || "deepseek-chat";
+  const sDefaultModel = document.getElementById("setting-default-ai-model");
+  if (sDefaultModel) sDefaultModel.value = siteSettings.defaultAiModel || "claude-3-5-sonnet";
 
   const preview = document.getElementById("setting-logo-preview");
   if (preview) {
@@ -601,6 +602,20 @@ function renderAdminPanel() {
     }
   }
 }
+
+// تغییر مدل اختصاصی برای یک کاربر خاص
+window.setUserAiModel = function(userId, modelKey) {
+  const user = systemUsers.find(u => u.id === userId);
+  if (user) {
+    user.assignedModel = modelKey;
+    if (currentUser && currentUser.id === user.id) {
+      currentUser.assignedModel = modelKey;
+      updateActiveModelDisplay();
+    }
+    syncStorage();
+    showToast(`مدل هوش مصنوعی کاربر «${user.name}» به ${AI_MODEL_NAMES[modelKey] || "همگانی"} تغییر یافت.`, "success");
+  }
+};
 
 // تغییر مستقیم موجودی اعتبار
 window.setExactCredit = function(userId) {
@@ -638,7 +653,7 @@ if (toggleAddUserBtn && adminAddUserForm) {
   });
 }
 
-// ساخت دستی کاربر
+// ساخت دستی کاربر با مدل اختصاصی
 if (adminAddUserForm) {
   adminAddUserForm.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -648,6 +663,7 @@ if (adminAddUserForm) {
     const pass = document.getElementById("admin-new-pass").value.trim();
     const credits = parseInt(document.getElementById("admin-new-credit").value) || 15;
     const role = document.getElementById("admin-new-role").value;
+    const assignedModel = document.getElementById("admin-new-model").value || "default";
 
     const existing = systemUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
     if (existing) {
@@ -662,7 +678,8 @@ if (adminAddUserForm) {
       pass: pass,
       credits: credits,
       role: role,
-      status: "active"
+      status: "active",
+      assignedModel: assignedModel
     };
 
     systemUsers.push(newUser);
@@ -677,28 +694,24 @@ if (adminAddUserForm) {
   });
 }
 
-// ذخیره تنظیمات ظاهر سایت و API هوش مصنوعی
+// ذخیره تنظیمات همگانی ظاهر سایت و هوش مصنوعی
 const saveSettingsBtn = document.getElementById("save-settings-btn");
 if (saveSettingsBtn) {
   saveSettingsBtn.addEventListener("click", () => {
     const sName = document.getElementById("setting-site-name");
     const sLogo = document.getElementById("setting-logo-url");
     const sGoogleId = document.getElementById("setting-google-client-id");
-    const sProvider = document.getElementById("setting-ai-provider");
-    const sKey = document.getElementById("setting-ai-key");
-    const sModel = document.getElementById("setting-ai-model");
+    const sDefaultModel = document.getElementById("setting-default-ai-model");
 
     if (sName) siteSettings.name = sName.value.trim() || "CODE AI STUDIO";
     if (sLogo) siteSettings.logoUrl = sLogo.value.trim();
     if (sGoogleId) siteSettings.googleClientId = sGoogleId.value.trim();
-    if (sProvider) siteSettings.aiProvider = sProvider.value;
-    if (sKey) siteSettings.aiApiKey = sKey.value.trim();
-    if (sModel) siteSettings.aiModel = sModel.value.trim() || "deepseek-chat";
+    if (sDefaultModel) siteSettings.defaultAiModel = sDefaultModel.value;
 
     syncStorage();
     applySiteSettings();
     initOfficialGoogleButton();
-    showToast("تنظیمات با موفقیت ذخیره شد. دیپ‌سیک فعال است!", "success");
+    showToast("کلیه تنظیمات با موفقیت ذخیره شد.", "success");
   });
 }
 
