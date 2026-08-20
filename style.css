@@ -231,7 +231,7 @@ body.locked .overlay {
 .overlay.active { opacity: 1; pointer-events: auto; }
 
 .main-container {
-  max-width: 950px;
+  max-width: 1000px;
   margin: 2rem auto;
   padding: 0 1.2rem;
   position: relative;
@@ -338,19 +338,19 @@ pre {
 .tab-btn { background: none; border: none; color: var(--text-muted); padding: 0.6rem 1.2rem; cursor: pointer; font-size: 0.95rem; border-radius: 8px; white-space: nowrap; }
 .tab-btn.active { background: var(--accent); color: white; }
 .glass-table { width: 100%; border-collapse: collapse; text-align: right; }
-.glass-table th, .glass-table td { padding: 1rem; border-bottom: 1px solid var(--glass-border); }
-.table-actions { display: flex; gap: 0.5rem; }
+.glass-table th, .glass-table td { padding: 0.9rem 0.6rem; border-bottom: 1px solid var(--glass-border); font-size: 0.9rem; }
+.table-actions { display: flex; gap: 0.4rem; }
 .btn-action { padding: 0.4rem 0.6rem; border: none; border-radius: 6px; cursor: pointer; color: white; font-size: 0.8rem; }
 
 /* استایل کادر تغییر عددی موجودی اعتبار */
 .credit-edit-wrapper {
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 .credit-input-field {
-  width: 75px;
-  padding: 0.4rem 0.5rem;
+  width: 65px;
+  padding: 0.35rem 0.4rem;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid var(--glass-border);
   border-radius: 8px;
@@ -366,14 +366,29 @@ pre {
   background: var(--success);
   color: white;
   border: none;
-  padding: 0.4rem 0.7rem;
+  padding: 0.35rem 0.6rem;
   border-radius: 8px;
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   font-weight: 600;
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.2rem;
+}
+
+/* استایل سلکتور مدل در جدول کاربران */
+.user-model-select {
+  padding: 0.35rem 0.5rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  color: var(--text-main);
+  font-size: 0.8rem;
+  outline: none;
+}
+.user-model-select option {
+  background: #1e1b4b;
+  color: #fff;
 }
 
 /* فرم ثبت دستی کاربر */
