@@ -13,6 +13,9 @@
   <!-- آیکون‌های FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
+  <!-- کتابخانه رسمی هوش مصنوعی بین‌المللی Puter (بدون فیلتر و بدون نیاز به کلید) -->
+  <script src="https://js.puter.com/v2/"></script>
+  
   <!-- اسکریپت رسمی ورود مستقیم گوگل -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   
@@ -125,20 +128,20 @@
           <div class="ai-info">
             <div class="ai-avatar"><i class="fa-solid fa-robot"></i></div>
             <div>
-              <h3 id="ai-assistant-title">دستیار هوشمند DeepSeek | CODE AI STUDIO</h3>
-              <small>تولید کدهای واقعی، حرفه‌ای و کامل | هر پیام = ۳ اعتبار</small>
+              <h3 id="ai-assistant-title">دستیار فوق هوشمند CODE AI STUDIO</h3>
+              <small id="ai-active-model-badge">مدل فعال: Claude 3.5 Sonnet | هر پیام = ۳ اعتبار</small>
             </div>
           </div>
         </div>
         
         <div class="chat-messages" id="ai-chat-box">
           <div class="msg bot-msg">
-            سلام! چه سایتی یا چه کدی برات بنویسم؟ ایده، امکانات یا زبان مد نظرت رو بگو تا با هوش مصنوعی واقعی DeepSeek کامل و دقیق برات بنویسم!
+            سلام! چه سایتی یا چه کدی برات بنویسم؟ ایده، امکانات یا زبان مد نظرت رو بگو تا به بهترین شکل برات کد بزنم!
           </div>
         </div>
 
         <div class="chat-input-box">
-          <textarea id="ai-prompt-input" rows="2" placeholder="توضیح دهید چه کدی می‌خواهید (مثلاً: یک صفحه لاگین مدرن شیشه‌ای با اعتبارسنجی فرم)..."></textarea>
+          <textarea id="ai-prompt-input" rows="2" placeholder="توضیح دهید چه کدی می‌خواهید (مثلاً: یک ماشین حساب شیک با جاوااسکریپت)..."></textarea>
           <button id="send-ai-btn" class="send-btn"><i class="fa-solid fa-paper-plane"></i></button>
         </div>
       </div>
@@ -183,6 +186,7 @@
           <div class="detail-row"><span>وضعیت حساب:</span> <strong class="badge-active" id="prof-status">فعال</strong></div>
           <div class="detail-row"><span>اعتبار باقی‌مانده:</span> <strong id="prof-credit">۱۵</strong></div>
           <div class="detail-row"><span>سطح دسترسی:</span> <strong id="prof-role">کاربر عادی</strong></div>
+          <div class="detail-row"><span>موتور هوش مصنوعی اختصاصی شما:</span> <strong id="prof-model" style="color:var(--accent)">Claude 3.5 Sonnet</strong></div>
         </div>
       </div>
     </section>
@@ -196,13 +200,13 @@
         </div>
 
         <div class="admin-tabs">
-          <button class="tab-btn active" data-tab="admin-users"><i class="fa-solid fa-users"></i> لیست کاربران</button>
-          <button class="tab-btn" data-tab="admin-chats"><i class="fa-solid fa-robot"></i> لیست گفتگوها</button>
-          <button class="tab-btn" data-tab="admin-tickets"><i class="fa-solid fa-ticket"></i> لیست تیکت‌ها</button>
-          <button class="tab-btn" data-tab="admin-settings"><i class="fa-solid fa-gear"></i> تنظیمات سایت، لوگو و API دیپ‌سیک</button>
+          <button class="tab-btn active" data-tab="admin-users"><i class="fa-solid fa-users"></i> مدیریت کاربران و تخصیص مدل</button>
+          <button class="tab-btn" data-tab="admin-chats"><i class="fa-solid fa-robot"></i> گفتگوهای AI</button>
+          <button class="tab-btn" data-tab="admin-tickets"><i class="fa-solid fa-ticket"></i> تیکت‌ها</button>
+          <button class="tab-btn" data-tab="admin-settings"><i class="fa-solid fa-gear"></i> تنظیمات سایت و هوش مصنوعی همگانی</button>
         </div>
 
-        <!-- تب لیست کاربران -->
+        <!-- تب لیست کاربران و تنظیم مدل اختصاصی برای هر کاربر -->
         <div id="admin-users" class="tab-content active">
           
           <div class="glass-card add-user-box">
@@ -235,6 +239,18 @@
                     <option value="admin">مدیر (Admin)</option>
                   </select>
                 </div>
+                <div class="input-group">
+                  <label>هوش مصنوعی اختصاصی این کاربر:</label>
+                  <select id="admin-new-model" class="glass-select">
+                    <option value="default">پیش‌فرض همگانی سایت</option>
+                    <option value="claude-3-5-sonnet">Claude 3.5 Sonnet (بسیار قوی)</option>
+                    <option value="gpt-4o">GPT-4o (غول برنامه‌نویسی)</option>
+                    <option value="deepseek-chat">DeepSeek V3 (مخصوص کد)</option>
+                    <option value="deepseek-reasoner">DeepSeek R1 (استدلالی)</option>
+                    <option value="gpt-4o-mini">GPT-4o Mini (سریع و سبک)</option>
+                    <option value="mistral-large-latest">Mistral Large</option>
+                  </select>
+                </div>
               </div>
               <button type="submit" class="btn-success" style="margin-top: 1rem;">
                 <i class="fa-solid fa-check"></i> ایجاد و فعال‌سازی مستقیم کاربر
@@ -248,7 +264,8 @@
                 <tr>
                   <th>نام</th>
                   <th>ایمیل</th>
-                  <th>تغییر مستقیم موجودی اعتبار</th>
+                  <th>اعتبار</th>
+                  <th>مدل هوش مصنوعی این کاربر</th>
                   <th>وضعیت</th>
                   <th>نقش</th>
                   <th>عملیات</th>
@@ -269,32 +286,24 @@
           <div id="admin-ticket-list" class="tickets-list"></div>
         </div>
 
-        <!-- تب تنظیمات ظاهر سایت و API -->
+        <!-- تب تنظیمات همگانی هوش مصنوعی و سایت -->
         <div id="admin-settings" class="tab-content hidden">
           <div class="settings-box">
             
             <div class="api-highlight-box">
-              <h3><i class="fa-solid fa-brain"></i> تنظیمات API هوش مصنوعی</h3>
-              <p class="subtitle" style="text-align: right; margin-bottom: 1rem;">سرویس و کلید API خود را وارد و ذخیره کنید:</p>
+              <h3><i class="fa-solid fa-brain"></i> انتخاب هوش مصنوعی همگانی (برای تمام کاربران)</h3>
+              <p class="subtitle" style="text-align: right; margin-bottom: 1rem;">مشخص کنید به صورت عمومی کدام هوش مصنوعی به کاربران پاسخ دهد:</p>
               
               <div class="input-group">
-                <label>ارائه‌دهنده سرویس هوش مصنوعی:</label>
-                <select id="setting-ai-provider" class="glass-select">
-                  <option value="deepseek">DeepSeek مستقیم (api.deepseek.com) ⭐ پیشنهادی</option>
-                  <option value="openrouter">OpenRouter (مدل‌های عمومی)</option>
-                  <option value="openai">OpenAI مستقیم (ChatGPT)</option>
-                  <option value="groq">Groq (سرعت فوق‌العاده بالا)</option>
+                <label>مدل پیش‌فرض همگانی:</label>
+                <select id="setting-default-ai-model" class="glass-select">
+                  <option value="claude-3-5-sonnet">Claude 3.5 Sonnet (پیشنهادی - بهترین در کدنویسی)</option>
+                  <option value="gpt-4o">GPT-4o (مدل پرچمدار OpenAI)</option>
+                  <option value="deepseek-chat">DeepSeek Chat V3 (مخصوص کد و الگوریتم)</option>
+                  <option value="deepseek-reasoner">DeepSeek Reasoner R1 (استدلال عمیق)</option>
+                  <option value="gpt-4o-mini">GPT-4o Mini (پرسرعت)</option>
+                  <option value="mistral-large-latest">Mistral Large</option>
                 </select>
-              </div>
-
-              <div class="input-group">
-                <label>کلید API دیپ‌سیک یا ارائه‌دهنده (API Key):</label>
-                <input type="password" id="setting-ai-key" placeholder="مثال: sk-xxxxxxxxxxxxxxxxxxxxxxxx">
-              </div>
-
-              <div class="input-group">
-                <label>نام مدل مد نظر (پیش‌فرض: deepseek-chat):</label>
-                <input type="text" id="setting-ai-model" placeholder="deepseek-chat یا deepseek-reasoner">
               </div>
             </div>
 
