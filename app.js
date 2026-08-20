@@ -1,7 +1,6 @@
 /**
  * CODE AI STUDIO Core Engine
- * متصل به Google Identity Services مستقیم و موتور هوش مصنوعی OpenRouter
- * شناسه رسمی گوگل: 305751111429-6ribodttr55u4p6gbchnqlea1b75o8cs.apps.googleusercontent.com
+ * متصل مستقیم به سرور رسمی DeepSeek (api.deepseek.com) و Google Identity
  * سازنده و مدیر کل: سینا (sina.ai.pani.panda@gmail.com / sina13950)
  */
 
@@ -11,14 +10,14 @@ const ADMIN_PASS = "sina13950";
 // شناسه اختصاصی Google Client ID شما
 const GOOGLE_CLIENT_ID = "305751111429-6ribodttr55u4p6gbchnqlea1b75o8cs.apps.googleusercontent.com";
 
-// تنظیمات و دیتابیس لوکال
+// تنظیمات و دیتابیس لوکال (پیش‌فرض متصل به DeepSeek مستقیم)
 let siteSettings = JSON.parse(localStorage.getItem("code_ai_settings")) || {
   name: "CODE AI STUDIO",
   logoUrl: "",
   googleClientId: GOOGLE_CLIENT_ID,
-  aiProvider: "openrouter",
+  aiProvider: "deepseek",
   aiApiKey: "",
-  aiModel: "deepseek/deepseek-r1:free"
+  aiModel: "deepseek-chat"
 };
 
 let currentUser = JSON.parse(localStorage.getItem("code_ai_user")) || null;
@@ -113,7 +112,7 @@ function applySiteSettings() {
   }
   
   const aiTitle = document.getElementById("ai-assistant-title");
-  if (aiTitle) aiTitle.innerText = `دستیار فوق هوشمند ${siteSettings.name}`;
+  if (aiTitle) aiTitle.innerText = `دستیار هوشمند DeepSeek | ${siteSettings.name}`;
   
   const logoImg = document.getElementById("site-logo-img");
   if (logoImg) {
@@ -157,7 +156,7 @@ function initOfficialGoogleButton() {
         auto_select: false
       });
 
-      container.innerHTML = ""; // پاکسازی کانتینر
+      container.innerHTML = "";
       google.accounts.id.renderButton(
         container,
         {
@@ -191,11 +190,10 @@ window.triggerQuickGooglePrompt = function() {
   if (window.google && window.google.accounts && window.google.accounts.id) {
     google.accounts.id.prompt();
   } else {
-    showToast("در حال لود کتابخانه گوگل... لطفاً چند ثانیه بعد امتحان کنید.", "info");
+    showToast("در حال لود کتابخانه گوگل... لطفاً چند ثانیه بعد مجدد بزنید.", "info");
   }
 };
 
-// دیکود کردن توکن امنیتی JWT برگشتی از گوگل
 function parseJwt(token) {
   try {
     const base64Url = token.split('.')[1];
@@ -209,7 +207,6 @@ function parseJwt(token) {
   }
 }
 
-// دریافت اطلاعات تایید شده کاربر از سرور گوگل
 function handleGoogleAuthResponse(response) {
   if (!response || !response.credential) return;
   const payload = parseJwt(response.credential);
@@ -221,12 +218,10 @@ function handleGoogleAuthResponse(response) {
   }
 }
 
-// ثبت یا ورود کاربر با اختصاص ۱۵ اعتبار هدیه
 function handleSuccessfulLogin(name, email) {
   let user = systemUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
 
   if (!user) {
-    // کاربر جدید: اختصاص ۱۵ اعتبار اولیه
     user = {
       id: Date.now(),
       name: name,
@@ -337,7 +332,7 @@ function updateUIState() {
 }
 
 /* ==========================================================
-   موتور هوش مصنوعی و کسر ۳ اعتبار برای هر پیام
+   موتور هوش مصنوعی متصل مستقیم به API رسمی DeepSeek
    ========================================================== */
 const sendAiBtn = document.getElementById("send-ai-btn");
 const aiInput = document.getElementById("ai-prompt-input");
@@ -373,17 +368,20 @@ async function handleAiPrompt() {
   appendAiMessage("user", promptText);
   aiInput.value = "";
 
-  const loadingMsg = appendAiMessage("bot", "در حال پردازش و تولید کدهای واقعی پروژه شما...");
+  const loadingMsg = appendAiMessage("bot", "در حال ارتباط با هوش مصنوعی DeepSeek و تولید کدهای واقعی...");
 
   try {
     let generatedCode = "";
 
-    // اگر کلید API در پنل ادمین ثبت شده باشد:
+    // اگر کلید API در پنل ادمین وارد شده باشد:
     if (siteSettings.aiApiKey) {
-      let endpoint = "https://openrouter.ai/api/v1/chat/completions";
-      let model = siteSettings.aiModel || "deepseek/deepseek-r1:free";
+      let endpoint = "https://api.deepseek.com/chat/completions";
+      let model = siteSettings.aiModel || "deepseek-chat";
 
-      if (siteSettings.aiProvider === "openai") {
+      if (siteSettings.aiProvider === "openrouter") {
+        endpoint = "https://openrouter.ai/api/v1/chat/completions";
+        model = siteSettings.aiModel || "deepseek/deepseek-r1:free";
+      } else if (siteSettings.aiProvider === "openai") {
         endpoint = "https://api.openai.com/v1/chat/completions";
         model = siteSettings.aiModel || "gpt-4o-mini";
       } else if (siteSettings.aiProvider === "groq") {
@@ -402,7 +400,7 @@ async function handleAiPrompt() {
           messages: [
             {
               role: "system",
-              content: "You are an expert, full-stack senior developer at CODE AI STUDIO. Write clean, complete, fully functional, production-ready code with responsive design and modern styles. Always provide real, robust, working code and avoid placeholders."
+              content: "You are an expert full-stack developer at CODE AI STUDIO. Write clean, complete, fully functional, production-ready code with responsive design and modern styles. Always provide real and complete working code."
             },
             {
               role: "user",
@@ -413,20 +411,23 @@ async function handleAiPrompt() {
       });
 
       if (!response.ok) {
-        throw new Error("API Key error or quota exceeded");
+        const errorData = await response.json().catch(() => ({}));
+        const detailedError = errorData.error ? (errorData.error.message || JSON.stringify(errorData.error)) : `کد خطا: ${response.status}`;
+        throw new Error(`خطای سرور هوش مصنوعی: ${detailedError}`);
       }
 
       const data = await response.json();
-      generatedCode = data.choices[0].message.content;
+      const choice = data.choices && data.choices[0] ? data.choices[0].message : null;
+      generatedCode = (choice && choice.content) ? choice.content : (choice && choice.reasoning_content ? choice.reasoning_content : "کدی تولید نشد.");
 
     } else {
-      // موتور آنلاین پیش‌فرض
+      // موتور رایگان آنلاین در صورت عدم وارد کردن کلید
       const systemPrompt = "You are an expert full-stack developer at CODE AI STUDIO. Write clean, complete, fully functional, production-ready code. Always provide real working code.";
       const fallbackRes = await fetch(`https://text.pollinations.ai/${encodeURIComponent(promptText)}?system=${encodeURIComponent(systemPrompt)}&model=openai`);
       if (fallbackRes.ok) {
         generatedCode = await fallbackRes.text();
       } else {
-        throw new Error("AI Offline");
+        throw new Error("سرویس هوش مصنوعی در دسترس نیست. لطفاً کلید DeepSeek را در پنل مدیریت وارد کنید.");
       }
     }
 
@@ -437,32 +438,9 @@ async function handleAiPrompt() {
     syncStorage();
 
   } catch (err) {
-    const fallbackCode = `\`\`\`html
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-  <meta charset="UTF-8">
-  <title>${promptText}</title>
-  <style>
-    body { font-family: sans-serif; background: #0f172a; color: white; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
-    .card { background: rgba(255,255,255,0.08); padding: 2rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2); text-align: center; }
-    button { background: #8b5cf6; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer; }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h2>پروژه: ${promptText}</h2>
-    <p>کدهای عملکردی با موفقیت ایجاد شدند.</p>
-    <button onclick="alert('عملکرد فعال است!')">کلیک کنید</button>
-  </div>
-</body>
-</html>
-\`\`\`
-
-اینم کد های سایت فوق العاده ات!
-اگرم میخوای تیم ما سایتت رو آنلاین کنه ( یعنی یک لینک تحویل بدیم که لینک سایتته) ، تیکت بده تا سازنده سایت ی لینک تر و تمیز تحویلت بده .`;
-
-    loadingMsg.innerText = fallbackCode;
+    console.error("AI Error:", err);
+    // نمایش پیام خطای واقعی به جای کد تستی
+    loadingMsg.innerText = `⚠️ ${err.message || "خطا در برقراری ارتباط با DeepSeek"}\n\nلطفاً از صحت کلید API در پنل مدیریت و داشتن موجودی در platform.deepseek.com اطمینان حاصل کنید.`;
   }
 }
 
@@ -605,13 +583,13 @@ function renderAdminPanel() {
   if (sGoogleId) sGoogleId.value = siteSettings.googleClientId || GOOGLE_CLIENT_ID;
 
   const sProvider = document.getElementById("setting-ai-provider");
-  if (sProvider) sProvider.value = siteSettings.aiProvider || "openrouter";
+  if (sProvider) sProvider.value = siteSettings.aiProvider || "deepseek";
 
   const sKey = document.getElementById("setting-ai-key");
   if (sKey) sKey.value = siteSettings.aiApiKey || "";
 
   const sModel = document.getElementById("setting-ai-model");
-  if (sModel) sModel.value = siteSettings.aiModel || "";
+  if (sModel) sModel.value = siteSettings.aiModel || "deepseek-chat";
 
   const preview = document.getElementById("setting-logo-preview");
   if (preview) {
@@ -715,12 +693,12 @@ if (saveSettingsBtn) {
     if (sGoogleId) siteSettings.googleClientId = sGoogleId.value.trim();
     if (sProvider) siteSettings.aiProvider = sProvider.value;
     if (sKey) siteSettings.aiApiKey = sKey.value.trim();
-    if (sModel) siteSettings.aiModel = sModel.value.trim();
+    if (sModel) siteSettings.aiModel = sModel.value.trim() || "deepseek-chat";
 
     syncStorage();
     applySiteSettings();
     initOfficialGoogleButton();
-    showToast("کلیه تنظیمات با موفقیت ذخیره شد.", "success");
+    showToast("تنظیمات با موفقیت ذخیره شد. دیپ‌سیک فعال است!", "success");
   });
 }
 
