@@ -1,6 +1,6 @@
 /**
  * CODE AI STUDIO Core Engine
- * متصل به پلتفرم ابری هوش مصنوعی Puter (بدون فیلتر و پرسرعت) و Google Identity
+ * متصل به موتور هوش مصنوعی مستقیم، بدون فیلتر و بدون نیاز به پاپ‌آپ ورود
  * سازنده و مدیر کل: سینا (sina.ai.pani.panda@gmail.com / sina13950)
  */
 
@@ -15,7 +15,7 @@ let siteSettings = JSON.parse(localStorage.getItem("code_ai_settings")) || {
   name: "CODE AI STUDIO",
   logoUrl: "",
   googleClientId: GOOGLE_CLIENT_ID,
-  globalAiModel: "claude-3-5-sonnet", // مدل پیش‌فرض عمومی
+  globalAiModel: "deepseek", // مدل پیش‌فرض عمومی (deepseek یا openai)
   ad: {
     enabled: false,
     title: "طراحی سایت حرفه‌ای",
@@ -117,7 +117,7 @@ function applySiteSettings() {
   }
   
   const aiTitle = document.getElementById("ai-assistant-title");
-  if (aiTitle) aiTitle.innerText = `دستیار فوق هوشمند ${siteSettings.name}`;
+  if (aiTitle) aiTitle.innerText = `دستیار هوشمند | ${siteSettings.name}`;
   
   const logoImg = document.getElementById("site-logo-img");
   if (logoImg) {
@@ -151,7 +151,7 @@ function applySiteSettings() {
   }
 }
 
-// بستن بنر تبلیغاتی به صورت موقت توسط کاربر
+// بستن بنر تبلیغاتی توسط کاربر
 const closeAdBtn = document.getElementById("close-ad-btn");
 if (closeAdBtn) {
   closeAdBtn.addEventListener("click", () => {
@@ -280,7 +280,7 @@ function handleSuccessfulLogin(name, email) {
   loginUserSession(user);
 }
 
-// فرم ورود عمومی (ایمیل و رمز عبور برای همه کاربران و مدیریت)
+// فرم ورود عمومی با ایمیل و رمز
 const logForm = document.getElementById("login-form");
 if (logForm) {
   logForm.addEventListener("submit", (e) => {
@@ -362,7 +362,7 @@ function updateUIState() {
   if (pModel) {
     const userModel = (currentUser.assignedModel && currentUser.assignedModel !== "default") 
       ? currentUser.assignedModel 
-      : `پیش‌فرض (${siteSettings.globalAiModel || "Claude 3.5"})`;
+      : `پیش‌فرض (${siteSettings.globalAiModel || "DeepSeek"})`;
     pModel.innerText = userModel;
   }
 
@@ -370,8 +370,8 @@ function updateUIState() {
   if (modelTag) {
     const activeModel = (currentUser.assignedModel && currentUser.assignedModel !== "default")
       ? currentUser.assignedModel
-      : (siteSettings.globalAiModel || "claude-3-5-sonnet");
-    modelTag.innerText = `مدل فعال شما: ${activeModel} | هر پیام = ۳ اعتبار`;
+      : (siteSettings.globalAiModel || "deepseek");
+    modelTag.innerText = `مدل هوش مصنوعی: ${activeModel} | هر پیام = ۳ اعتبار`;
   }
 
   const adminNav = document.getElementById("admin-nav-item");
@@ -385,7 +385,7 @@ function updateUIState() {
 }
 
 /* ==========================================================
-   موتور هوش مصنوعی Puter.js (بدون فیلتر و با انتخاب مدل کاربر)
+   موتور هوش مصنوعی مستقیم (بدون پاپ‌آپ لاگین و بدون فیلتر)
    ========================================================== */
 const sendAiBtn = document.getElementById("send-ai-btn");
 const aiInput = document.getElementById("ai-prompt-input");
@@ -421,31 +421,34 @@ async function handleAiPrompt() {
   appendAiMessage("user", promptText);
   aiInput.value = "";
 
-  // تشخیص مدل اختصاصی کاربر یا مدل عمومی سیستم
-  const modelToUse = (currentUser.assignedModel && currentUser.assignedModel !== "default")
+  // انتخاب مدل اختصاصی یا عمومی
+  let modelToUse = (currentUser.assignedModel && currentUser.assignedModel !== "default")
     ? currentUser.assignedModel
-    : (siteSettings.globalAiModel || "claude-3-5-sonnet");
+    : (siteSettings.globalAiModel || "deepseek");
 
-  const loadingMsg = appendAiMessage("bot", `در حال تولید کدهای کامل با هوش مصنوعی (${modelToUse})...`);
+  // استانداردسازی نام مدل
+  let apiModelName = "deepseek";
+  if (modelToUse.includes("gpt-4") || modelToUse.includes("openai")) {
+    apiModelName = "openai";
+  } else if (modelToUse.includes("claude")) {
+    apiModelName = "claude";
+  } else {
+    apiModelName = "deepseek";
+  }
+
+  const loadingMsg = appendAiMessage("bot", `در حال پردازش و تولید کدهای واقعی پروژه (${apiModelName})...`);
 
   try {
+    const systemPrompt = "You are an expert full-stack senior developer at CODE AI STUDIO. Write clean, complete, fully functional, production-ready code with responsive design and modern styles. Always provide real and complete working code.";
+    
+    // ارسال مستقیم از طریق پروتکل REST بدون هیچ پاپ‌آپ لاگین
+    const response = await fetch(`https://text.pollinations.ai/${encodeURIComponent(promptText)}?system=${encodeURIComponent(systemPrompt)}&model=${apiModelName}`);
+    
     let generatedCode = "";
-
-    // فراخوانی مستقیم از موتور Puter.js
-    if (window.puter && window.puter.ai) {
-      const systemInstruction = "You are an expert full-stack senior developer at CODE AI STUDIO. Write clean, complete, fully functional, production-ready code with responsive design and modern styles. Always provide real and complete working code.";
-      const fullPrompt = `${systemInstruction}\n\nUser Request: ${promptText}`;
-
-      const response = await puter.ai.chat(fullPrompt, { model: modelToUse });
-      generatedCode = typeof response === 'string' ? response : (response.message ? response.message.content : JSON.stringify(response));
+    if (response.ok) {
+      generatedCode = await response.text();
     } else {
-      // موتور پشتیبان آنلاین
-      const fallbackRes = await fetch(`https://text.pollinations.ai/${encodeURIComponent(promptText)}?system=${encodeURIComponent("You are an expert developer at CODE AI STUDIO. Write full functional code.")}&model=openai`);
-      if (fallbackRes.ok) {
-        generatedCode = await fallbackRes.text();
-      } else {
-        throw new Error("سرویس هوش مصنوعی موقتاً پاسخ نداد.");
-      }
+      throw new Error(`خطای سرور: ${response.status}`);
     }
 
     const mandatoryClosingPitch = `\n\nاینم کد های سایت فوق العاده ات!\nاگرم میخوای تیم ما سایتت رو آنلاین کنه ( یعنی یک لینک تحویل بدیم که لینک سایتته) ، تیکت بده تا سازنده سایت ی لینک تر و تمیز تحویلت بده .`;
@@ -453,11 +456,11 @@ async function handleAiPrompt() {
     const finalAnswer = generatedCode + mandatoryClosingPitch;
     loadingMsg.innerText = finalAnswer;
 
-    // ذخیره در لاگ کامل گفتگوها برای مشاهده مدیر
+    // ثبت در لاگ کامل گفتگوها برای مدیر
     aiConversations.push({
       user: currentUser.email,
       userName: currentUser.name,
-      model: modelToUse,
+      model: apiModelName,
       prompt: promptText,
       reply: finalAnswer,
       date: new Date().toLocaleString("fa-IR")
@@ -465,8 +468,8 @@ async function handleAiPrompt() {
     syncStorage();
 
   } catch (err) {
-    console.error("Puter AI Error:", err);
-    loadingMsg.innerText = `⚠️ خطا در دریافت پاسخ از هوش مصنوعی:\n${err.message || "لطفاً چند لحظه بعد مجدداً تلاش کنید."}`;
+    console.error("AI Error:", err);
+    loadingMsg.innerText = `⚠️ خطا در دریافت پاسخ از سرور هوش مصنوعی:\n${err.message || "لطفاً چند لحظه بعد مجدد امتحان کنید."}`;
   }
 }
 
@@ -571,10 +574,9 @@ function renderAdminPanel() {
         <td>
           <select class="glass-select" style="padding:0.4rem; font-size:0.8rem;" onchange="assignUserModel(${u.id}, this.value)">
             <option value="default" ${currentModel === 'default' ? 'selected' : ''}>پیش‌فرض سیستم</option>
-            <option value="claude-3-5-sonnet" ${currentModel === 'claude-3-5-sonnet' ? 'selected' : ''}>Claude 3.5 Sonnet</option>
-            <option value="gpt-4o" ${currentModel === 'gpt-4o' ? 'selected' : ''}>GPT-4o</option>
-            <option value="deepseek-chat" ${currentModel === 'deepseek-chat' ? 'selected' : ''}>DeepSeek Chat</option>
-            <option value="gpt-4o-mini" ${currentModel === 'gpt-4o-mini' ? 'selected' : ''}>GPT-4o Mini</option>
+            <option value="deepseek" ${currentModel === 'deepseek' ? 'selected' : ''}>DeepSeek</option>
+            <option value="openai" ${currentModel === 'openai' ? 'selected' : ''}>OpenAI (ChatGPT)</option>
+            <option value="claude" ${currentModel === 'claude' ? 'selected' : ''}>Claude</option>
           </select>
         </td>
         <td><span class="${u.status === 'active' ? 'badge-active' : 'badge-admin'}">${u.status}</span></td>
@@ -587,7 +589,7 @@ function renderAdminPanel() {
     });
   }
 
-  // ۲. مشاهده کامل و شیک لاگ گفتگوهای هوش مصنوعی
+  // ۲. مشاهده کامل لاگ گفتگوهای هوش مصنوعی
   const logsBox = document.getElementById("admin-ai-logs");
   if (logsBox) {
     if (aiConversations.length === 0) {
@@ -642,7 +644,7 @@ function renderAdminPanel() {
   if (sGoogleId) sGoogleId.value = siteSettings.googleClientId || GOOGLE_CLIENT_ID;
 
   const sGlobalModel = document.getElementById("setting-global-ai-model");
-  if (sGlobalModel) sGlobalModel.value = siteSettings.globalAiModel || "claude-3-5-sonnet";
+  if (sGlobalModel) sGlobalModel.value = siteSettings.globalAiModel || "deepseek";
 
   const preview = document.getElementById("setting-logo-preview");
   if (preview) {
@@ -655,7 +657,7 @@ function renderAdminPanel() {
   }
 }
 
-// تابع تغییر هوش مصنوعی اختصاصی برای یک کاربر خاص
+// تغییر مدل اختصاصی برای یک کاربر خاص
 window.assignUserModel = function(userId, selectedModel) {
   const user = systemUsers.find(u => u.id === userId);
   if (user) {
@@ -755,7 +757,7 @@ if (saveAdBtn) {
     };
     syncStorage();
     applySiteSettings();
-    showToast("تنظیمات بنر تبلیغاتی با موفقیت ذخیره و اعمال شد.", "success");
+    showToast("تنظیمات بنر تبلیغاتی با موفقیت ذخیره شد.", "success");
   });
 }
 
