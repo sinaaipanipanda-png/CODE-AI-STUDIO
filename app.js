@@ -1,7 +1,6 @@
 /**
  * CODE AI STUDIO Core Engine
- * متصل به پلتفرم ابری Puter.js با پشتیبانی از Claude 3.5, GPT-4o, DeepSeek (بدون فیلتر و رایگان)
- * دارای قابلیت تعیین مدل همگانی و مدل اختصاصی برای هر کاربر
+ * متصل به پلتفرم ابری هوش مصنوعی Puter (بدون فیلتر و پرسرعت) و Google Identity
  * سازنده و مدیر کل: سینا (sina.ai.pani.panda@gmail.com / sina13950)
  */
 
@@ -11,32 +10,29 @@ const ADMIN_PASS = "sina13950";
 // شناسه رسمی Google Client ID شما
 const GOOGLE_CLIENT_ID = "305751111429-6ribodttr55u4p6gbchnqlea1b75o8cs.apps.googleusercontent.com";
 
-// نام‌های فارسی و مدل‌ها
-const AI_MODEL_NAMES = {
-  "claude-3-5-sonnet": "Claude 3.5 Sonnet",
-  "gpt-4o": "GPT-4o",
-  "deepseek-chat": "DeepSeek Chat V3",
-  "deepseek-reasoner": "DeepSeek R1",
-  "gpt-4o-mini": "GPT-4o Mini",
-  "mistral-large-latest": "Mistral Large"
-};
-
-// تنظیمات سایت
+// تنظیمات سایت، مدل پیش‌فرض هوش مصنوعی و تبلیغات
 let siteSettings = JSON.parse(localStorage.getItem("code_ai_settings")) || {
   name: "CODE AI STUDIO",
   logoUrl: "",
   googleClientId: GOOGLE_CLIENT_ID,
-  defaultAiModel: "claude-3-5-sonnet" // مدل پیش‌فرض همگانی
+  globalAiModel: "claude-3-5-sonnet", // مدل پیش‌فرض عمومی
+  ad: {
+    enabled: false,
+    title: "طراحی سایت حرفه‌ای",
+    desc: "برای سفارش سایت اختصاصی کلیک کنید",
+    url: "https://google.com",
+    img: ""
+  }
 };
 
 let currentUser = JSON.parse(localStorage.getItem("code_ai_user")) || null;
 let systemUsers = JSON.parse(localStorage.getItem("code_ai_users_db")) || [
-  { id: 1, name: "سینا (مدیر کل)", email: ADMIN_EMAIL, pass: ADMIN_PASS, credits: 999, role: "admin", status: "active", assignedModel: "claude-3-5-sonnet" }
+  { id: 1, name: "سینا (مدیر کل)", email: ADMIN_EMAIL, pass: ADMIN_PASS, credits: 999, role: "admin", status: "active", assignedModel: "default" }
 ];
 let systemTickets = JSON.parse(localStorage.getItem("code_ai_tickets_db")) || [];
 let aiConversations = JSON.parse(localStorage.getItem("code_ai_ai_db")) || [];
 
-// ذخیره‌سازی داده‌ها
+// ذخیره‌سازی داده‌ها در مرورگر
 function syncStorage() {
   localStorage.setItem("code_ai_settings", JSON.stringify(siteSettings));
   localStorage.setItem("code_ai_users_db", JSON.stringify(systemUsers));
@@ -83,7 +79,7 @@ if (menuBtn) menuBtn.addEventListener("click", () => toggleSidebar(true));
 if (closeMenu) closeMenu.addEventListener("click", () => toggleSidebar(false));
 if (overlay) overlay.addEventListener("click", () => toggleSidebar(false));
 
-// سیستم ناوبری و قفل دسترسی
+// ناوبری بین صفحات
 function navigateTo(pageId) {
   if (!currentUser && pageId !== "auth-section") {
     showToast("لطفاً ابتدا وارد حساب خود شوید!", "error");
@@ -106,15 +102,7 @@ document.querySelectorAll(".nav-item[data-page]").forEach(btn => {
   btn.addEventListener("click", () => navigateTo(btn.dataset.page));
 });
 
-// تشخیص مدل اختصاصی کاربر یا مدل همگانی
-function getActiveAiModelForUser(user) {
-  if (user && user.assignedModel && user.assignedModel !== "default") {
-    return user.assignedModel;
-  }
-  return siteSettings.defaultAiModel || "claude-3-5-sonnet";
-}
-
-// اعمال تنظیمات نام سایت و لوگو
+// اعمال تنظیمات نام، لوگو و بنر تبلیغاتی بالای سایت
 function applySiteSettings() {
   const pageTitle = document.getElementById("page-title");
   if (pageTitle) pageTitle.innerText = `${siteSettings.name} | استودیو هوش مصنوعی`;
@@ -128,6 +116,9 @@ function applySiteSettings() {
     siteDisplay.innerHTML = `${parts[0] || "CODE"} <span>${parts.slice(1).join(" ") || "AI STUDIO"}</span>`;
   }
   
+  const aiTitle = document.getElementById("ai-assistant-title");
+  if (aiTitle) aiTitle.innerText = `دستیار فوق هوشمند ${siteSettings.name}`;
+  
   const logoImg = document.getElementById("site-logo-img");
   if (logoImg) {
     if (siteSettings.logoUrl) {
@@ -138,21 +129,37 @@ function applySiteSettings() {
     }
   }
 
-  updateActiveModelDisplay();
+  // رندر بنر تبلیغاتی بالای صفحه
+  const adBanner = document.getElementById("top-ad-banner");
+  if (adBanner && siteSettings.ad) {
+    if (siteSettings.ad.enabled && currentUser) {
+      document.getElementById("ad-title").innerText = siteSettings.ad.title || "تبلیغات ویژه";
+      document.getElementById("ad-desc").innerText = siteSettings.ad.desc || "";
+      document.getElementById("ad-link").href = siteSettings.ad.url || "#";
+      
+      const adImgEl = document.getElementById("ad-img");
+      if (siteSettings.ad.img) {
+        adImgEl.src = siteSettings.ad.img;
+        adImgEl.classList.remove("hidden");
+      } else {
+        adImgEl.classList.add("hidden");
+      }
+      adBanner.classList.remove("hidden");
+    } else {
+      adBanner.classList.add("hidden");
+    }
+  }
 }
 
-function updateActiveModelDisplay() {
-  const activeModel = getActiveAiModelForUser(currentUser);
-  const modelNameFa = AI_MODEL_NAMES[activeModel] || activeModel;
-  
-  const badge = document.getElementById("ai-active-model-badge");
-  if (badge) badge.innerText = `مدل فعال شما: ${modelNameFa} | هر پیام = ۳ اعتبار`;
-
-  const profModel = document.getElementById("prof-model");
-  if (profModel) profModel.innerText = modelNameFa;
+// بستن بنر تبلیغاتی به صورت موقت توسط کاربر
+const closeAdBtn = document.getElementById("close-ad-btn");
+if (closeAdBtn) {
+  closeAdBtn.addEventListener("click", () => {
+    document.getElementById("top-ad-banner").classList.add("hidden");
+  });
 }
 
-// ریست خودکار ۱۵ اعتبار روزانه در ساعت ۰۰:۰۰
+// سیستم افزایش خودکار ۱۵ اعتبار روزانه در ساعت ۰۰:۰۰ بامداد
 function checkDailyCreditReset() {
   if (!currentUser) return;
   const today = new Date().toDateString();
@@ -217,7 +224,7 @@ window.triggerQuickGooglePrompt = function() {
   if (window.google && window.google.accounts && window.google.accounts.id) {
     google.accounts.id.prompt();
   } else {
-    showToast("در حال لود کتابخانه گوگل... لطفاً چند لحظه بعد مجدداً تلاش کنید.", "info");
+    showToast("در حال لود کتابخانه گوگل... لطفاً چند لحظه بعد بزنید.", "info");
   }
 };
 
@@ -317,6 +324,8 @@ function loginUserSession(user) {
   if (header) header.classList.remove("hidden");
   const authSec = document.getElementById("auth-section");
   if (authSec) authSec.classList.add("hidden");
+  
+  applySiteSettings();
   checkDailyCreditReset();
   updateUIState();
   navigateTo("home-page");
@@ -349,7 +358,21 @@ function updateUIState() {
   const pStatus = document.getElementById("prof-status");
   if (pStatus) pStatus.innerText = currentUser.status === "active" ? "فعال" : "معلق";
 
-  updateActiveModelDisplay();
+  const pModel = document.getElementById("prof-model");
+  if (pModel) {
+    const userModel = (currentUser.assignedModel && currentUser.assignedModel !== "default") 
+      ? currentUser.assignedModel 
+      : `پیش‌فرض (${siteSettings.globalAiModel || "Claude 3.5"})`;
+    pModel.innerText = userModel;
+  }
+
+  const modelTag = document.getElementById("ai-current-model-tag");
+  if (modelTag) {
+    const activeModel = (currentUser.assignedModel && currentUser.assignedModel !== "default")
+      ? currentUser.assignedModel
+      : (siteSettings.globalAiModel || "claude-3-5-sonnet");
+    modelTag.innerText = `مدل فعال شما: ${activeModel} | هر پیام = ۳ اعتبار`;
+  }
 
   const adminNav = document.getElementById("admin-nav-item");
   if (adminNav) {
@@ -362,7 +385,7 @@ function updateUIState() {
 }
 
 /* ==========================================================
-   موتور قدرتمند هوش مصنوعی Puter.js (بدون فیلتر و بدون نیاز به کلید)
+   موتور هوش مصنوعی Puter.js (بدون فیلتر و با انتخاب مدل کاربر)
    ========================================================== */
 const sendAiBtn = document.getElementById("send-ai-btn");
 const aiInput = document.getElementById("ai-prompt-input");
@@ -390,10 +413,6 @@ async function handleAiPrompt() {
     return;
   }
 
-  // تعیین مدل برای کاربر فعلی (اختصاصی یا همگانی)
-  const targetModel = getActiveAiModelForUser(currentUser);
-  const targetModelName = AI_MODEL_NAMES[targetModel] || targetModel;
-
   // کسر ۳ اعتبار
   currentUser.credits -= 3;
   syncStorage();
@@ -402,40 +421,52 @@ async function handleAiPrompt() {
   appendAiMessage("user", promptText);
   aiInput.value = "";
 
-  const loadingMsg = appendAiMessage("bot", `در حال پردازش و تولید کدهای واقعی توسط ${targetModelName}...`);
+  // تشخیص مدل اختصاصی کاربر یا مدل عمومی سیستم
+  const modelToUse = (currentUser.assignedModel && currentUser.assignedModel !== "default")
+    ? currentUser.assignedModel
+    : (siteSettings.globalAiModel || "claude-3-5-sonnet");
+
+  const loadingMsg = appendAiMessage("bot", `در حال تولید کدهای کامل با هوش مصنوعی (${modelToUse})...`);
 
   try {
     let generatedCode = "";
 
-    const systemPrompt = "You are an expert, senior full-stack developer at CODE AI STUDIO. Write clean, complete, fully functional, production-ready code with responsive design and modern styles. Always provide real and complete working code.";
+    // فراخوانی مستقیم از موتور Puter.js
+    if (window.puter && window.puter.ai) {
+      const systemInstruction = "You are an expert full-stack senior developer at CODE AI STUDIO. Write clean, complete, fully functional, production-ready code with responsive design and modern styles. Always provide real and complete working code.";
+      const fullPrompt = `${systemInstruction}\n\nUser Request: ${promptText}`;
 
-    // فراخوانی مستقیم و پرسرعت Puter.js
-    if (window.puter && window.puter.ai && window.puter.ai.chat) {
-      const response = await puter.ai.chat(
-        `${systemPrompt}\n\nUser request: ${promptText}`,
-        { model: targetModel }
-      );
-      
-      generatedCode = response?.message?.content || response?.text || response?.toString() || "";
+      const response = await puter.ai.chat(fullPrompt, { model: modelToUse });
+      generatedCode = typeof response === 'string' ? response : (response.message ? response.message.content : JSON.stringify(response));
     } else {
-      // موتور پشتیبان آنلاین در صورت نبود Puter
-      const fallbackRes = await fetch(`https://text.pollinations.ai/${encodeURIComponent(promptText)}?system=${encodeURIComponent(systemPrompt)}&model=openai`);
+      // موتور پشتیبان آنلاین
+      const fallbackRes = await fetch(`https://text.pollinations.ai/${encodeURIComponent(promptText)}?system=${encodeURIComponent("You are an expert developer at CODE AI STUDIO. Write full functional code.")}&model=openai`);
       if (fallbackRes.ok) {
         generatedCode = await fallbackRes.text();
       } else {
-        throw new Error("سرویس هوش مصنوعی در دسترس نیست.");
+        throw new Error("سرویس هوش مصنوعی موقتاً پاسخ نداد.");
       }
     }
 
     const mandatoryClosingPitch = `\n\nاینم کد های سایت فوق العاده ات!\nاگرم میخوای تیم ما سایتت رو آنلاین کنه ( یعنی یک لینک تحویل بدیم که لینک سایتته) ، تیکت بده تا سازنده سایت ی لینک تر و تمیز تحویلت بده .`;
     
-    loadingMsg.innerText = generatedCode + mandatoryClosingPitch;
-    aiConversations.push({ user: currentUser.email, prompt: promptText, reply: loadingMsg.innerText, model: targetModelName, date: new Date().toLocaleString("fa-IR") });
+    const finalAnswer = generatedCode + mandatoryClosingPitch;
+    loadingMsg.innerText = finalAnswer;
+
+    // ذخیره در لاگ کامل گفتگوها برای مشاهده مدیر
+    aiConversations.push({
+      user: currentUser.email,
+      userName: currentUser.name,
+      model: modelToUse,
+      prompt: promptText,
+      reply: finalAnswer,
+      date: new Date().toLocaleString("fa-IR")
+    });
     syncStorage();
 
   } catch (err) {
     console.error("Puter AI Error:", err);
-    loadingMsg.innerText = `⚠️ خطا در برقراری ارتباط با هوش مصنوعی:\n${err.message || "لطفاً اینترنت خود را چک کنید."}`;
+    loadingMsg.innerText = `⚠️ خطا در دریافت پاسخ از هوش مصنوعی:\n${err.message || "لطفاً چند لحظه بعد مجدداً تلاش کنید."}`;
   }
 }
 
@@ -521,11 +552,12 @@ document.querySelectorAll(".tab-btn").forEach(btn => {
 });
 
 function renderAdminPanel() {
+  // ۱. لیست کاربران با قابلیت تغییر موجودی و انتخاب هوش مصنوعی اختصاصی
   const tbody = document.getElementById("users-table-body");
   if (tbody) {
     tbody.innerHTML = "";
     systemUsers.forEach(u => {
-      const assigned = u.assignedModel || "default";
+      const currentModel = u.assignedModel || "default";
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${u.name}</td>
@@ -537,18 +569,15 @@ function renderAdminPanel() {
           </div>
         </td>
         <td>
-          <select class="user-model-select" onchange="setUserAiModel(${u.id}, this.value)">
-            <option value="default" ${assigned === "default" ? "selected" : ""}>پیش‌فرض همگانی</option>
-            <option value="claude-3-5-sonnet" ${assigned === "claude-3-5-sonnet" ? "selected" : ""}>Claude 3.5 Sonnet</option>
-            <option value="gpt-4o" ${assigned === "gpt-4o" ? "selected" : ""}>GPT-4o</option>
-            <option value="deepseek-chat" ${assigned === "deepseek-chat" ? "selected" : ""}>DeepSeek Chat V3</option>
-            <option value="deepseek-reasoner" ${assigned === "deepseek-reasoner" ? "selected" : ""}>DeepSeek R1</option>
-            <option value="gpt-4o-mini" ${assigned === "gpt-4o-mini" ? "selected" : ""}>GPT-4o Mini</option>
-            <option value="mistral-large-latest" ${assigned === "mistral-large-latest" ? "selected" : ""}>Mistral Large</option>
+          <select class="glass-select" style="padding:0.4rem; font-size:0.8rem;" onchange="assignUserModel(${u.id}, this.value)">
+            <option value="default" ${currentModel === 'default' ? 'selected' : ''}>پیش‌فرض سیستم</option>
+            <option value="claude-3-5-sonnet" ${currentModel === 'claude-3-5-sonnet' ? 'selected' : ''}>Claude 3.5 Sonnet</option>
+            <option value="gpt-4o" ${currentModel === 'gpt-4o' ? 'selected' : ''}>GPT-4o</option>
+            <option value="deepseek-chat" ${currentModel === 'deepseek-chat' ? 'selected' : ''}>DeepSeek Chat</option>
+            <option value="gpt-4o-mini" ${currentModel === 'gpt-4o-mini' ? 'selected' : ''}>GPT-4o Mini</option>
           </select>
         </td>
         <td><span class="${u.status === 'active' ? 'badge-active' : 'badge-admin'}">${u.status}</span></td>
-        <td>${u.role}</td>
         <td class="table-actions">
           <button class="btn-action" style="background:#eab308" onclick="toggleSuspend(${u.id})">تعلیق</button>
           <button class="btn-action" style="background:#ef4444" onclick="deleteUser(${u.id})"><i class="fa-solid fa-trash"></i></button>
@@ -558,16 +587,30 @@ function renderAdminPanel() {
     });
   }
 
+  // ۲. مشاهده کامل و شیک لاگ گفتگوهای هوش مصنوعی
   const logsBox = document.getElementById("admin-ai-logs");
   if (logsBox) {
-    logsBox.innerHTML = aiConversations.map(c => `
-      <div style="background:rgba(255,255,255,0.05); padding:1rem; border-radius:10px; margin-bottom:0.8rem;">
-        <small style="color:var(--accent)">کاربر: ${c.user} | مدل: ${c.model || "پیش‌فرض"} | زمان: ${c.date}</small>
-        <p><strong>درخواست:</strong> ${c.prompt}</p>
-      </div>
-    `).join("") || "<p>هیچ گفتگویی ثبت نشده است.</p>";
+    if (aiConversations.length === 0) {
+      logsBox.innerHTML = "<p style='text-align:center; color:var(--text-muted);'>هنوز هیچ گفتگویی ثبت نشده است.</p>";
+    } else {
+      logsBox.innerHTML = aiConversations.slice().reverse().map(c => `
+        <div class="log-card">
+          <div class="log-meta">
+            <span><strong style="color:var(--accent);">${c.userName || 'کاربر'}</strong> (${c.user})</span>
+            <small style="color:var(--text-muted);">${c.date} | مدل: ${c.model || 'پیش‌فرض'}</small>
+          </div>
+          <div class="log-prompt">
+            <strong><i class="fa-solid fa-user"></i> درخواست کاربر:</strong>
+            <p style="margin-top:0.3rem;">${c.prompt}</p>
+          </div>
+          <strong><i class="fa-solid fa-robot"></i> پاسخ و کدهای تولید شده:</strong>
+          <pre class="log-reply">${c.reply}</pre>
+        </div>
+      `).join("");
+    }
   }
 
+  // ۳. لیست تیکت‌ها
   const ticketsBox = document.getElementById("admin-ticket-list");
   if (ticketsBox) {
     ticketsBox.innerHTML = systemTickets.map(t => `
@@ -579,7 +622,16 @@ function renderAdminPanel() {
     `).join("") || "<p>هیچ تیکتی وجود ندارد.</p>";
   }
 
-  // پر کردن فرم تنظیمات همگانی
+  // ۴. لود مقادیر بخش تبلیغات
+  if (siteSettings.ad) {
+    document.getElementById("setting-ad-enabled").value = siteSettings.ad.enabled ? "true" : "false";
+    document.getElementById("setting-ad-title").value = siteSettings.ad.title || "";
+    document.getElementById("setting-ad-desc").value = siteSettings.ad.desc || "";
+    document.getElementById("setting-ad-url").value = siteSettings.ad.url || "";
+    document.getElementById("setting-ad-img").value = siteSettings.ad.img || "";
+  }
+
+  // ۵. لود مقادیر تنظیمات اصلی
   const sName = document.getElementById("setting-site-name");
   if (sName) sName.value = siteSettings.name;
   
@@ -589,8 +641,8 @@ function renderAdminPanel() {
   const sGoogleId = document.getElementById("setting-google-client-id");
   if (sGoogleId) sGoogleId.value = siteSettings.googleClientId || GOOGLE_CLIENT_ID;
 
-  const sDefaultModel = document.getElementById("setting-default-ai-model");
-  if (sDefaultModel) sDefaultModel.value = siteSettings.defaultAiModel || "claude-3-5-sonnet";
+  const sGlobalModel = document.getElementById("setting-global-ai-model");
+  if (sGlobalModel) sGlobalModel.value = siteSettings.globalAiModel || "claude-3-5-sonnet";
 
   const preview = document.getElementById("setting-logo-preview");
   if (preview) {
@@ -603,17 +655,14 @@ function renderAdminPanel() {
   }
 }
 
-// تغییر مدل اختصاصی برای یک کاربر خاص
-window.setUserAiModel = function(userId, modelKey) {
+// تابع تغییر هوش مصنوعی اختصاصی برای یک کاربر خاص
+window.assignUserModel = function(userId, selectedModel) {
   const user = systemUsers.find(u => u.id === userId);
   if (user) {
-    user.assignedModel = modelKey;
-    if (currentUser && currentUser.id === user.id) {
-      currentUser.assignedModel = modelKey;
-      updateActiveModelDisplay();
-    }
+    user.assignedModel = selectedModel;
+    if (currentUser && currentUser.id === user.id) currentUser.assignedModel = selectedModel;
     syncStorage();
-    showToast(`مدل هوش مصنوعی کاربر «${user.name}» به ${AI_MODEL_NAMES[modelKey] || "همگانی"} تغییر یافت.`, "success");
+    showToast(`مدل هوش مصنوعی کاربر «${user.name}» به ${selectedModel} تغییر یافت.`, "success");
   }
 };
 
@@ -653,7 +702,7 @@ if (toggleAddUserBtn && adminAddUserForm) {
   });
 }
 
-// ساخت دستی کاربر با مدل اختصاصی
+// ساخت دستی کاربر
 if (adminAddUserForm) {
   adminAddUserForm.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -663,7 +712,6 @@ if (adminAddUserForm) {
     const pass = document.getElementById("admin-new-pass").value.trim();
     const credits = parseInt(document.getElementById("admin-new-credit").value) || 15;
     const role = document.getElementById("admin-new-role").value;
-    const assignedModel = document.getElementById("admin-new-model").value || "default";
 
     const existing = systemUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
     if (existing) {
@@ -679,7 +727,7 @@ if (adminAddUserForm) {
       credits: credits,
       role: role,
       status: "active",
-      assignedModel: assignedModel
+      assignedModel: "default"
     };
 
     systemUsers.push(newUser);
@@ -694,24 +742,41 @@ if (adminAddUserForm) {
   });
 }
 
-// ذخیره تنظیمات همگانی ظاهر سایت و هوش مصنوعی
+// ذخیره تنظیمات تبلیغات بالای سایت
+const saveAdBtn = document.getElementById("save-ad-btn");
+if (saveAdBtn) {
+  saveAdBtn.addEventListener("click", () => {
+    siteSettings.ad = {
+      enabled: document.getElementById("setting-ad-enabled").value === "true",
+      title: document.getElementById("setting-ad-title").value.trim(),
+      desc: document.getElementById("setting-ad-desc").value.trim(),
+      url: document.getElementById("setting-ad-url").value.trim(),
+      img: document.getElementById("setting-ad-img").value.trim()
+    };
+    syncStorage();
+    applySiteSettings();
+    showToast("تنظیمات بنر تبلیغاتی با موفقیت ذخیره و اعمال شد.", "success");
+  });
+}
+
+// ذخیره تنظیمات ظاهر سایت و هوش مصنوعی عمومی
 const saveSettingsBtn = document.getElementById("save-settings-btn");
 if (saveSettingsBtn) {
   saveSettingsBtn.addEventListener("click", () => {
     const sName = document.getElementById("setting-site-name");
     const sLogo = document.getElementById("setting-logo-url");
     const sGoogleId = document.getElementById("setting-google-client-id");
-    const sDefaultModel = document.getElementById("setting-default-ai-model");
+    const sGlobalModel = document.getElementById("setting-global-ai-model");
 
     if (sName) siteSettings.name = sName.value.trim() || "CODE AI STUDIO";
     if (sLogo) siteSettings.logoUrl = sLogo.value.trim();
     if (sGoogleId) siteSettings.googleClientId = sGoogleId.value.trim();
-    if (sDefaultModel) siteSettings.defaultAiModel = sDefaultModel.value;
+    if (sGlobalModel) siteSettings.globalAiModel = sGlobalModel.value;
 
     syncStorage();
     applySiteSettings();
     initOfficialGoogleButton();
-    showToast("کلیه تنظیمات با موفقیت ذخیره شد.", "success");
+    showToast("تنظیمات کلی با موفقیت ذخیره شد.", "success");
   });
 }
 
