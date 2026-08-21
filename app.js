@@ -1,6 +1,7 @@
 /**
  * CODE AI STUDIO Core Engine
- * متصل به موتور هوش مصنوعی مستقیم، بدون فیلتر و بدون نیاز به پاپ‌آپ ورود
+ * متصل به Google Identity Services مستقیم، سیستم کاربران پرو ⭐ و مدل‌های پایه 🟢 / پیشرفته ⭐
+ * شناسه رسمی گوگل: 305751111429-6ribodttr55u4p6gbchnqlea1b75o8cs.apps.googleusercontent.com
  * سازنده و مدیر کل: سینا (sina.ai.pani.panda@gmail.com / sina13950)
  */
 
@@ -10,16 +11,15 @@ const ADMIN_PASS = "sina13950";
 // شناسه رسمی Google Client ID شما
 const GOOGLE_CLIENT_ID = "305751111429-6ribodttr55u4p6gbchnqlea1b75o8cs.apps.googleusercontent.com";
 
-// تنظیمات سایت، مدل پیش‌فرض هوش مصنوعی و تبلیغات
+// تنظیمات سایت، بنر تبلیغاتی و مدل‌ها
 let siteSettings = JSON.parse(localStorage.getItem("code_ai_settings")) || {
   name: "CODE AI STUDIO",
   logoUrl: "",
   googleClientId: GOOGLE_CLIENT_ID,
-  globalAiModel: "deepseek", // مدل پیش‌فرض عمومی (deepseek یا openai)
   ad: {
     enabled: false,
-    title: "طراحی سایت حرفه‌ای",
-    desc: "برای سفارش سایت اختصاصی کلیک کنید",
+    title: "ارتقا به حساب پرو با تخفیف ویژه!",
+    desc: "دسترسی نامحدود به قدرتمندترین مدل‌های هوش مصنوعی Claude 3.5 و DeepSeek R1",
     url: "https://google.com",
     img: ""
   }
@@ -27,12 +27,12 @@ let siteSettings = JSON.parse(localStorage.getItem("code_ai_settings")) || {
 
 let currentUser = JSON.parse(localStorage.getItem("code_ai_user")) || null;
 let systemUsers = JSON.parse(localStorage.getItem("code_ai_users_db")) || [
-  { id: 1, name: "سینا (مدیر کل)", email: ADMIN_EMAIL, pass: ADMIN_PASS, credits: 999, role: "admin", status: "active", assignedModel: "default" }
+  { id: 1, name: "سینا (مدیر کل)", email: ADMIN_EMAIL, pass: ADMIN_PASS, credits: 999, isPro: true, role: "admin", status: "active" }
 ];
 let systemTickets = JSON.parse(localStorage.getItem("code_ai_tickets_db")) || [];
 let aiConversations = JSON.parse(localStorage.getItem("code_ai_ai_db")) || [];
 
-// ذخیره‌سازی داده‌ها در مرورگر
+// ذخیره‌سازی داده‌ها در حافظه مرورگر
 function syncStorage() {
   localStorage.setItem("code_ai_settings", JSON.stringify(siteSettings));
   localStorage.setItem("code_ai_users_db", JSON.stringify(systemUsers));
@@ -224,10 +224,11 @@ window.triggerQuickGooglePrompt = function() {
   if (window.google && window.google.accounts && window.google.accounts.id) {
     google.accounts.id.prompt();
   } else {
-    showToast("در حال لود کتابخانه گوگل... لطفاً چند لحظه بعد بزنید.", "info");
+    showToast("در حال لود کتابخانه گوگل... لطفاً چند لحظه بعد مجدد بزنید.", "info");
   }
 };
 
+// دیکود کردن توکن JWT برگشتی از گوگل
 function parseJwt(token) {
   try {
     const base64Url = token.split('.')[1];
@@ -241,6 +242,7 @@ function parseJwt(token) {
   }
 }
 
+// پردازش اطلاعات کاربر از گوگل
 function handleGoogleAuthResponse(response) {
   if (!response || !response.credential) return;
   const payload = parseJwt(response.credential);
@@ -252,6 +254,7 @@ function handleGoogleAuthResponse(response) {
   }
 }
 
+// ثبت‌نام یا ورود با اختصاص ۱۵ اعتبار اولیه
 function handleSuccessfulLogin(name, email) {
   let user = systemUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
 
@@ -262,9 +265,9 @@ function handleSuccessfulLogin(name, email) {
       email: email,
       pass: "google_oauth_verified",
       credits: 15,
+      isPro: false,
       role: (email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) ? "admin" : "user",
-      status: "active",
-      assignedModel: "default"
+      status: "active"
     };
     systemUsers.push(user);
   }
@@ -280,7 +283,7 @@ function handleSuccessfulLogin(name, email) {
   loginUserSession(user);
 }
 
-// فرم ورود عمومی با ایمیل و رمز
+// فرم ورود مستقیم با ایمیل و رمز عبور (برای همه کاربران و مدیریت)
 const logForm = document.getElementById("login-form");
 if (logForm) {
   logForm.addEventListener("submit", (e) => {
@@ -343,6 +346,40 @@ function updateUIState() {
   const welcome = document.getElementById("welcome-text");
   if (welcome) welcome.innerText = `سلاممممم ${currentUser.name} !`;
   
+  // بررسی و نمایش نشان‌های ستاره طلایی پرو ⭐
+  const isUserPro = currentUser.isPro || currentUser.role === "admin";
+  const proBadgeHeader = document.getElementById("user-pro-badge");
+  const homeProStar = document.getElementById("home-pro-star");
+  const profProBadge = document.getElementById("prof-pro-badge");
+  const profPlanText = document.getElementById("prof-plan-text");
+  const profAccessText = document.getElementById("prof-access-text");
+
+  if (isUserPro) {
+    if (proBadgeHeader) proBadgeHeader.classList.remove("hidden");
+    if (homeProStar) homeProStar.classList.remove("hidden");
+    if (profProBadge) profProBadge.classList.remove("hidden");
+    if (profPlanText) {
+      profPlanText.innerText = "پرو ویژه ⭐";
+      profPlanText.className = "badge-plan-normal pro-badge-star";
+    }
+    if (profAccessText) {
+      profAccessText.innerText = "فعال (دسترسی نامحدود به تمام مدل‌های 🟢 و ⭐)";
+      profAccessText.style.color = "var(--success)";
+    }
+  } else {
+    if (proBadgeHeader) proBadgeHeader.classList.add("hidden");
+    if (homeProStar) homeProStar.classList.add("hidden");
+    if (profProBadge) profProBadge.classList.add("hidden");
+    if (profPlanText) {
+      profPlanText.innerText = "عادی";
+      profPlanText.className = "badge-plan-normal";
+    }
+    if (profAccessText) {
+      profAccessText.innerText = "غیرفعال (فقط مدل‌های پایه 🟢)";
+      profAccessText.style.color = "var(--text-muted)";
+    }
+  }
+  
   const pName = document.getElementById("prof-name");
   if (pName) pName.innerText = currentUser.name;
   
@@ -353,26 +390,10 @@ function updateUIState() {
   if (pCredit) pCredit.innerText = currentUser.credits;
   
   const pRole = document.getElementById("prof-role");
-  if (pRole) pRole.innerText = currentUser.role === "admin" ? "مدیر کل" : "کاربر عادی";
+  if (pRole) pRole.innerText = currentUser.role === "admin" ? "مدیر کل" : "کاربر";
   
   const pStatus = document.getElementById("prof-status");
   if (pStatus) pStatus.innerText = currentUser.status === "active" ? "فعال" : "معلق";
-
-  const pModel = document.getElementById("prof-model");
-  if (pModel) {
-    const userModel = (currentUser.assignedModel && currentUser.assignedModel !== "default") 
-      ? currentUser.assignedModel 
-      : `پیش‌فرض (${siteSettings.globalAiModel || "DeepSeek"})`;
-    pModel.innerText = userModel;
-  }
-
-  const modelTag = document.getElementById("ai-current-model-tag");
-  if (modelTag) {
-    const activeModel = (currentUser.assignedModel && currentUser.assignedModel !== "default")
-      ? currentUser.assignedModel
-      : (siteSettings.globalAiModel || "deepseek");
-    modelTag.innerText = `مدل هوش مصنوعی: ${activeModel} | هر پیام = ۳ اعتبار`;
-  }
 
   const adminNav = document.getElementById("admin-nav-item");
   if (adminNav) {
@@ -385,11 +406,26 @@ function updateUIState() {
 }
 
 /* ==========================================================
-   موتور هوش مصنوعی مستقیم (بدون پاپ‌آپ لاگین و بدون فیلتر)
+   موتور هوش مصنوعی مستقیم با تفکیک مدل‌های 🟢 و ⭐
    ========================================================== */
 const sendAiBtn = document.getElementById("send-ai-btn");
 const aiInput = document.getElementById("ai-prompt-input");
 const aiChatBox = document.getElementById("ai-chat-box");
+const aiModelSelect = document.getElementById("ai-model-select");
+
+// جلوگیری از انتخاب غیرمجاز مدل‌های پرو توسط کاربران عادی
+if (aiModelSelect) {
+  aiModelSelect.addEventListener("change", (e) => {
+    const selectedModel = e.target.value;
+    const isProModel = ["claude", "gpt4o-pro", "deepseek-r1"].includes(selectedModel);
+    const isUserPro = currentUser && (currentUser.isPro || currentUser.role === "admin");
+
+    if (isProModel && !isUserPro) {
+      showToast("این مدل با علامت ⭐ مخصوص کاربران پرو است! برای ارتقا به پشتیبانی تیکت دهید :)", "error");
+      aiModelSelect.value = "deepseek"; // بازگشت به مدل پایه
+    }
+  });
+}
 
 if (sendAiBtn) sendAiBtn.addEventListener("click", handleAiPrompt);
 if (aiInput) {
@@ -413,6 +449,17 @@ async function handleAiPrompt() {
     return;
   }
 
+  // بررسی دسترسی به مدل پرو
+  const selectedModel = aiModelSelect ? aiModelSelect.value : "deepseek";
+  const isProModel = ["claude", "gpt4o-pro", "deepseek-r1"].includes(selectedModel);
+  const isUserPro = currentUser && (currentUser.isPro || currentUser.role === "admin");
+
+  if (isProModel && !isUserPro) {
+    showToast("این مدل با علامت ⭐ مخصوص کاربران پرو است! برای ارتقا به پشتیبانی تیکت دهید :)", "error");
+    if (aiModelSelect) aiModelSelect.value = "deepseek";
+    return;
+  }
+
   // کسر ۳ اعتبار
   currentUser.credits -= 3;
   syncStorage();
@@ -421,27 +468,36 @@ async function handleAiPrompt() {
   appendAiMessage("user", promptText);
   aiInput.value = "";
 
-  // انتخاب مدل اختصاصی یا عمومی
-  let modelToUse = (currentUser.assignedModel && currentUser.assignedModel !== "default")
-    ? currentUser.assignedModel
-    : (siteSettings.globalAiModel || "deepseek");
-
-  // استانداردسازی نام مدل
+  // مپ کردن مدل به موتور مستقیم
   let apiModelName = "deepseek";
-  if (modelToUse.includes("gpt-4") || modelToUse.includes("openai")) {
-    apiModelName = "openai";
-  } else if (modelToUse.includes("claude")) {
+  let displayModelName = "DeepSeek Chat";
+
+  if (selectedModel === "claude") {
     apiModelName = "claude";
-  } else {
-    apiModelName = "deepseek";
+    displayModelName = "Claude 3.5 Sonnet ⭐";
+  } else if (selectedModel === "gpt4o-pro") {
+    apiModelName = "openai";
+    displayModelName = "GPT-4o ⭐";
+  } else if (selectedModel === "deepseek-r1") {
+    apiModelName = "deepseek-reasoner";
+    displayModelName = "DeepSeek-R1 ⭐";
+  } else if (selectedModel === "openai") {
+    apiModelName = "openai-fast";
+    displayModelName = "GPT-4o Mini 🟢";
+  } else if (selectedModel === "qwen") {
+    apiModelName = "qwen";
+    displayModelName = "Qwen 2.5 Coder 🟢";
+  } else if (selectedModel === "mistral") {
+    apiModelName = "mistral";
+    displayModelName = "Llama 3.3 / Mistral 🟢";
   }
 
-  const loadingMsg = appendAiMessage("bot", `در حال پردازش و تولید کدهای واقعی پروژه (${apiModelName})...`);
+  const loadingMsg = appendAiMessage("bot", `در حال تولید کدهای کامل با هوش مصنوعی (${displayModelName})...`);
 
   try {
     const systemPrompt = "You are an expert full-stack senior developer at CODE AI STUDIO. Write clean, complete, fully functional, production-ready code with responsive design and modern styles. Always provide real and complete working code.";
     
-    // ارسال مستقیم از طریق پروتکل REST بدون هیچ پاپ‌آپ لاگین
+    // ارسال مستقیم از پروتکل بدون فیلتر و بدون پاپ‌آپ
     const response = await fetch(`https://text.pollinations.ai/${encodeURIComponent(promptText)}?system=${encodeURIComponent(systemPrompt)}&model=${apiModelName}`);
     
     let generatedCode = "";
@@ -460,7 +516,7 @@ async function handleAiPrompt() {
     aiConversations.push({
       user: currentUser.email,
       userName: currentUser.name,
-      model: apiModelName,
+      model: displayModelName,
       prompt: promptText,
       reply: finalAnswer,
       date: new Date().toLocaleString("fa-IR")
@@ -469,7 +525,7 @@ async function handleAiPrompt() {
 
   } catch (err) {
     console.error("AI Error:", err);
-    loadingMsg.innerText = `⚠️ خطا در دریافت پاسخ از سرور هوش مصنوعی:\n${err.message || "لطفاً چند لحظه بعد مجدد امتحان کنید."}`;
+    loadingMsg.innerText = `⚠️ خطا در دریافت پاسخ از هوش مصنوعی:\n${err.message || "لطفاً چند لحظه بعد مجدداً تلاش کنید."}`;
   }
 }
 
@@ -499,7 +555,7 @@ function renderUserTickets() {
   if (userTickets.length === 0) {
     ticketChatBox.innerHTML = `
       <div class="tg-bubble tg-received">
-        سلام! چطور می‌تونم کمکتون کنم؟ اگر درخواست افزایش اعتبار یا آنلاین کردن سایتتون رو دارید در خدمتم.
+        سلام! چطور می‌تونم کمکتون کنم؟ اگر درخواست ارتقا به حساب پرو ⭐، افزایش اعتبار یا آنلاین کردن سایتتون رو دارید در خدمتم.
         <span class="tg-time">12:00</span>
       </div>`;
     return;
@@ -555,12 +611,12 @@ document.querySelectorAll(".tab-btn").forEach(btn => {
 });
 
 function renderAdminPanel() {
-  // ۱. لیست کاربران با قابلیت تغییر موجودی و انتخاب هوش مصنوعی اختصاصی
+  // ۱. لیست کاربران با قابلیت تغییر موجودی و تبدیل به کاربر پرو ⭐
   const tbody = document.getElementById("users-table-body");
   if (tbody) {
     tbody.innerHTML = "";
     systemUsers.forEach(u => {
-      const currentModel = u.assignedModel || "default";
+      const isPro = u.isPro || u.role === "admin";
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${u.name}</td>
@@ -572,12 +628,9 @@ function renderAdminPanel() {
           </div>
         </td>
         <td>
-          <select class="glass-select" style="padding:0.4rem; font-size:0.8rem;" onchange="assignUserModel(${u.id}, this.value)">
-            <option value="default" ${currentModel === 'default' ? 'selected' : ''}>پیش‌فرض سیستم</option>
-            <option value="deepseek" ${currentModel === 'deepseek' ? 'selected' : ''}>DeepSeek</option>
-            <option value="openai" ${currentModel === 'openai' ? 'selected' : ''}>OpenAI (ChatGPT)</option>
-            <option value="claude" ${currentModel === 'claude' ? 'selected' : ''}>Claude</option>
-          </select>
+          <button class="btn-action ${isPro ? 'btn-toggle-pro' : 'badge-plan-normal'}" onclick="toggleProPlan(${u.id})">
+            ${isPro ? '⭐ کاربر پرو' : 'کاربر عادی'}
+          </button>
         </td>
         <td><span class="${u.status === 'active' ? 'badge-active' : 'badge-admin'}">${u.status}</span></td>
         <td class="table-actions">
@@ -599,7 +652,7 @@ function renderAdminPanel() {
         <div class="log-card">
           <div class="log-meta">
             <span><strong style="color:var(--accent);">${c.userName || 'کاربر'}</strong> (${c.user})</span>
-            <small style="color:var(--text-muted);">${c.date} | مدل: ${c.model || 'پیش‌فرض'}</small>
+            <small style="color:var(--text-muted);">${c.date} | مدل: ${c.model || 'نامشخص'}</small>
           </div>
           <div class="log-prompt">
             <strong><i class="fa-solid fa-user"></i> درخواست کاربر:</strong>
@@ -643,9 +696,6 @@ function renderAdminPanel() {
   const sGoogleId = document.getElementById("setting-google-client-id");
   if (sGoogleId) sGoogleId.value = siteSettings.googleClientId || GOOGLE_CLIENT_ID;
 
-  const sGlobalModel = document.getElementById("setting-global-ai-model");
-  if (sGlobalModel) sGlobalModel.value = siteSettings.globalAiModel || "deepseek";
-
   const preview = document.getElementById("setting-logo-preview");
   if (preview) {
     if (siteSettings.logoUrl) {
@@ -657,14 +707,16 @@ function renderAdminPanel() {
   }
 }
 
-// تغییر مدل اختصاصی برای یک کاربر خاص
-window.assignUserModel = function(userId, selectedModel) {
+// قابلیت ارتقا به پرو ⭐ یا عادی‌سازی کاربر توسط سینا
+window.toggleProPlan = function(userId) {
   const user = systemUsers.find(u => u.id === userId);
   if (user) {
-    user.assignedModel = selectedModel;
-    if (currentUser && currentUser.id === user.id) currentUser.assignedModel = selectedModel;
+    user.isPro = !user.isPro;
+    if (currentUser && currentUser.id === user.id) currentUser.isPro = user.isPro;
     syncStorage();
-    showToast(`مدل هوش مصنوعی کاربر «${user.name}» به ${selectedModel} تغییر یافت.`, "success");
+    renderAdminPanel();
+    updateUIState();
+    showToast(`وضعیت کاربر «${user.name}» به ${user.isPro ? 'پرو ⭐' : 'عادی'} تغییر یافت.`, "success");
   }
 };
 
@@ -713,6 +765,7 @@ if (adminAddUserForm) {
     const email = document.getElementById("admin-new-email").value.trim();
     const pass = document.getElementById("admin-new-pass").value.trim();
     const credits = parseInt(document.getElementById("admin-new-credit").value) || 15;
+    const isPro = document.getElementById("admin-new-ispro").value === "true";
     const role = document.getElementById("admin-new-role").value;
 
     const existing = systemUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
@@ -727,9 +780,9 @@ if (adminAddUserForm) {
       email: email,
       pass: pass,
       credits: credits,
+      isPro: isPro,
       role: role,
-      status: "active",
-      assignedModel: "default"
+      status: "active"
     };
 
     systemUsers.push(newUser);
@@ -740,7 +793,7 @@ if (adminAddUserForm) {
     adminAddUserForm.classList.add("hidden");
     if (toggleAddUserBtn) toggleAddUserBtn.innerHTML = '<i class="fa-solid fa-plus"></i> فرم جدید';
 
-    showToast(`کاربر «${name}» با موفقیت اضافه شد و می‌تواند وارد شود.`, "success");
+    showToast(`کاربر «${name}» (${isPro ? 'پرو ⭐' : 'عادی'}) با موفقیت اضافه شد.`, "success");
   });
 }
 
@@ -757,23 +810,21 @@ if (saveAdBtn) {
     };
     syncStorage();
     applySiteSettings();
-    showToast("تنظیمات بنر تبلیغاتی با موفقیت ذخیره شد.", "success");
+    showToast("تنظیمات بنر تبلیغاتی با موفقیت ذخیره و اعمال شد.", "success");
   });
 }
 
-// ذخیره تنظیمات ظاهر سایت و هوش مصنوعی عمومی
+// ذخیره تنظیمات ظاهر سایت
 const saveSettingsBtn = document.getElementById("save-settings-btn");
 if (saveSettingsBtn) {
   saveSettingsBtn.addEventListener("click", () => {
     const sName = document.getElementById("setting-site-name");
     const sLogo = document.getElementById("setting-logo-url");
     const sGoogleId = document.getElementById("setting-google-client-id");
-    const sGlobalModel = document.getElementById("setting-global-ai-model");
 
     if (sName) siteSettings.name = sName.value.trim() || "CODE AI STUDIO";
     if (sLogo) siteSettings.logoUrl = sLogo.value.trim();
     if (sGoogleId) siteSettings.googleClientId = sGoogleId.value.trim();
-    if (sGlobalModel) siteSettings.globalAiModel = sGlobalModel.value;
 
     syncStorage();
     applySiteSettings();
