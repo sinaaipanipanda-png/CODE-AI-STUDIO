@@ -13,10 +13,7 @@
   <!-- آیکون‌های FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- کتابخانه رسمی هوش مصنوعی خارجی و بدون فیلتر Puter.js -->
-  <script src="https://js.puter.com/v2/"></script>
-  
-  <!-- اسکریپت رسمی ورود گوگل -->
+  <!-- اسکریپت رسمی ورود مستقیم گوگل -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   
   <link rel="stylesheet" href="style.css">
@@ -54,6 +51,7 @@
       </div>
     </div>
     <div class="header-left">
+      <span id="user-pro-badge" class="pro-badge-star hidden" title="کاربر ویژه پرو">⭐ PRO</span>
       <div class="credit-badge" id="credit-badge" title="اعتبار باقی‌مانده شما">
         <i class="fa-solid fa-bolt"></i> <span id="user-credits">۱۵</span> اعتبار
       </div>
@@ -81,7 +79,7 @@
   <!-- بخش اصلی برنامه -->
   <main class="main-container">
 
-    <!-- ۱. بخش ورود رسمی گوگل و حساب کاربری -->
+    <!-- ۱. بخش ورود گوگل و حساب کاربری -->
     <section id="auth-section" class="page-section glass-card">
       <div id="login-box" class="auth-box">
         <div class="auth-brand">
@@ -114,7 +112,10 @@
     <!-- ۲. صفحه خانه -->
     <section id="home-page" class="page-section hidden">
       <div class="glass-card welcome-card">
-        <h2 id="welcome-text">سلاممممم کاربر عزیز !</h2>
+        <div class="welcome-title-box">
+          <h2 id="welcome-text">سلاممممم کاربر عزیز !</h2>
+          <span id="home-pro-star" class="home-pro-badge hidden">⭐ PRO</span>
+        </div>
         <p class="hero-sub">امروز قراره چه کد هایی بسازیم!؟</p>
         <div class="hero-stats">
           <div class="stat-item">
@@ -141,9 +142,24 @@
         <div class="chat-header">
           <div class="ai-info">
             <div class="ai-avatar"><i class="fa-solid fa-robot"></i></div>
-            <div>
-              <h3 id="ai-assistant-title">دستیار فوق هوشمند CODE AI STUDIO</h3>
-              <small id="ai-current-model-tag">مدل فعال: Claude 3.5 Sonnet / DeepSeek | هر پیام = ۳ اعتبار</small>
+            <div class="ai-header-details">
+              <h3 id="ai-assistant-title">دستیار هوشمند CODE AI STUDIO</h3>
+              <div class="model-picker-wrapper">
+                <label for="ai-model-select">انتخاب موتور هوش مصنوعی:</label>
+                <select id="ai-model-select" class="glass-select model-dropdown">
+                  <optgroup label="🟢 مدل‌های پایه (قابل استفاده برای همه)">
+                    <option value="deepseek">🟢 DeepSeek Chat (سریع و دقیق)</option>
+                    <option value="openai">🟢 GPT-4o Mini (پرسرعت)</option>
+                    <option value="mistral">🟢 Llama 3.3 / Mistral (عمومی)</option>
+                    <option value="qwen">🟢 Qwen 2.5 Coder (کدنویسی)</option>
+                  </optgroup>
+                  <optgroup label="⭐ مدل‌های پیشرفته (مخصوص کاربران پرو)">
+                    <option value="claude">⭐ Claude 3.5 Sonnet (بهترین در طراحی وب)</option>
+                    <option value="gpt4o-pro">⭐ GPT-4o (پرچمدار اصلی)</option>
+                    <option value="deepseek-r1">⭐ DeepSeek-R1 (غول استدلال و ریاضی)</option>
+                  </optgroup>
+                </select>
+              </div>
             </div>
           </div>
         </div>
@@ -155,7 +171,7 @@
         </div>
 
         <div class="chat-input-box">
-          <textarea id="ai-prompt-input" rows="2" placeholder="توضیح دهید چه کدی می‌خواهید (مثلاً: یک صفحه لندینگ مدرن ریسپانسیو)..."></textarea>
+          <textarea id="ai-prompt-input" rows="2" placeholder="توضیح دهید چه کدی می‌خواهید (مثلاً: یک صفحه لندینگ مدرن با انیمیشن)..."></textarea>
           <button id="send-ai-btn" class="send-btn"><i class="fa-solid fa-paper-plane"></i></button>
         </div>
       </div>
@@ -177,7 +193,7 @@
 
         <div class="tg-chat-area" id="ticket-chat-box">
           <div class="tg-bubble tg-received">
-            سلام! چطور می‌تونم کمکتون کنم؟ اگر درخواست افزایش اعتبار یا آنلاین کردن سایتتون رو دارید در خدمتم.
+            سلام! چطور می‌تونم کمکتون کنم؟ اگر درخواست ارتقا به حساب پرو ⭐، افزایش اعتبار یا آنلاین کردن سایتتون رو دارید در خدمتم.
             <span class="tg-time">12:00</span>
           </div>
         </div>
@@ -192,15 +208,21 @@
     <!-- ۵. صفحه پروفایل کاربر -->
     <section id="profile-page" class="page-section hidden">
       <div class="glass-card profile-card">
-        <div class="avatar-large"><i class="fa-solid fa-user-astronaut"></i></div>
-        <h3 id="prof-name">نام کاربر</h3>
+        <div class="avatar-large">
+          <i class="fa-solid fa-user-astronaut"></i>
+        </div>
+        <div class="prof-name-wrapper">
+          <h3 id="prof-name">نام کاربر</h3>
+          <span id="prof-pro-badge" class="pro-badge-star hidden">⭐ PRO</span>
+        </div>
         <p id="prof-email">user@example.com</p>
         <hr class="divider">
         <div class="prof-details">
+          <div class="detail-row"><span>نوع حساب:</span> <strong id="prof-plan-text" class="badge-plan-normal">عادی</strong></div>
           <div class="detail-row"><span>وضعیت حساب:</span> <strong class="badge-active" id="prof-status">فعال</strong></div>
           <div class="detail-row"><span>اعتبار باقی‌مانده:</span> <strong id="prof-credit">۱۵</strong></div>
-          <div class="detail-row"><span>مدل اختصاصی AI شما:</span> <strong id="prof-model" style="color:var(--accent)">پیش‌فرض</strong></div>
-          <div class="detail-row"><span>سطح دسترسی:</span> <strong id="prof-role">کاربر عادی</strong></div>
+          <div class="detail-row"><span>دسترسی به مدل‌های ⭐ پرو:</span> <strong id="prof-access-text" style="color:var(--text-muted)">غیرفعال</strong></div>
+          <div class="detail-row"><span>سطح کاربری:</span> <strong id="prof-role">کاربر عادی</strong></div>
         </div>
       </div>
     </section>
@@ -214,14 +236,14 @@
         </div>
 
         <div class="admin-tabs">
-          <button class="tab-btn active" data-tab="admin-users"><i class="fa-solid fa-users"></i> کاربران و مدل‌ها</button>
+          <button class="tab-btn active" data-tab="admin-users"><i class="fa-solid fa-users"></i> کاربران و مدیریت پرو ⭐</button>
           <button class="tab-btn" data-tab="admin-chats"><i class="fa-solid fa-robot"></i> مشاهده کامل گفتگوها</button>
           <button class="tab-btn" data-tab="admin-tickets"><i class="fa-solid fa-ticket"></i> تیکت‌ها</button>
           <button class="tab-btn" data-tab="admin-ads"><i class="fa-solid fa-rectangle-ad"></i> مدیریت بنر تبلیغاتی</button>
-          <button class="tab-btn" data-tab="admin-settings"><i class="fa-solid fa-gear"></i> تنظیمات سایت و AI</button>
+          <button class="tab-btn" data-tab="admin-settings"><i class="fa-solid fa-gear"></i> تنظیمات سایت</button>
         </div>
 
-        <!-- تب لیست کاربران و اختصاص مدل هوش مصنوعی -->
+        <!-- تب لیست کاربران و مدیریت پرو -->
         <div id="admin-users" class="tab-content active">
           
           <div class="glass-card add-user-box">
@@ -248,6 +270,13 @@
                   <input type="number" id="admin-new-credit" value="15" min="0" required>
                 </div>
                 <div class="input-group">
+                  <label>نوع حساب:</label>
+                  <select id="admin-new-ispro" class="glass-select">
+                    <option value="false">کاربر عادی (فقط مدل‌های 🟢)</option>
+                    <option value="true">کاربر پرو ⭐ (تمام مدل‌های 🟢 و ⭐)</option>
+                  </select>
+                </div>
+                <div class="input-group">
                   <label>نقش:</label>
                   <select id="admin-new-role" class="glass-select">
                     <option value="user">کاربر عادی</option>
@@ -268,7 +297,7 @@
                   <th>نام</th>
                   <th>ایمیل</th>
                   <th>موجودی اعتبار</th>
-                  <th>مدل هوش مصنوعی این کاربر</th>
+                  <th>نوع اشتراک</th>
                   <th>وضعیت</th>
                   <th>عملیات</th>
                 </tr>
@@ -304,12 +333,12 @@
 
             <div class="input-group">
               <label>عنوان تبلیغ:</label>
-              <input type="text" id="setting-ad-title" placeholder="مثال: طراحی وب‌سایت با تخفیف ویژه!">
+              <input type="text" id="setting-ad-title" placeholder="مثال: ارتقا به حساب پرو با ۵۰٪ تخفیف!">
             </div>
 
             <div class="input-group">
               <label>توضیحات کوتاه تبلیغ:</label>
-              <input type="text" id="setting-ad-desc" placeholder="مثال: برای سفارش طراحی سایت با پشتیبانی ۲۴ ساعته کلیک کنید.">
+              <input type="text" id="setting-ad-desc" placeholder="مثال: دسترسی نامحدود به Claude 3.5 و DeepSeek R1">
             </div>
 
             <div class="input-group">
@@ -326,27 +355,10 @@
           </div>
         </div>
 
-        <!-- تب تنظیمات ظاهر سایت و مدل پیش‌فرض هوش مصنوعی -->
+        <!-- تب تنظیمات ظاهر سایت -->
         <div id="admin-settings" class="tab-content hidden">
           <div class="settings-box">
             
-            <div class="api-highlight-box">
-              <h3><i class="fa-solid fa-brain"></i> انتخاب مدل پیش‌فرض هوش مصنوعی (برای همه)</h3>
-              <p class="subtitle" style="text-align: right; margin-bottom: 1rem;">مدلی که برای تمام کاربران عادی به صورت عمومی اجرا خواهد شد:</p>
-              
-              <div class="input-group">
-                <label>مدل عمومی پیش‌فرض سیستم:</label>
-                <select id="setting-global-ai-model" class="glass-select">
-                  <option value="claude-3-5-sonnet">Claude 3.5 Sonnet (فوق‌العاده قوی و بدون فیلتر) ⭐ پیشنهادی</option>
-                  <option value="gpt-4o">GPT-4o (قدرتمندترین مدل OpenAI)</option>
-                  <option value="deepseek-chat">DeepSeek Chat (تخصصی کدنویسی)</option>
-                  <option value="gpt-4o-mini">GPT-4o Mini (پرسرعت)</option>
-                </select>
-              </div>
-            </div>
-
-            <hr style="margin: 1.5rem 0; border: 1px solid var(--glass-border);">
-
             <h3>تنظیمات کلاینت ورود گوگل (Google Client ID)</h3>
             <div class="input-group">
               <label>Google OAuth Client ID:</label>
