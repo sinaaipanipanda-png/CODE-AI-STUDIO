@@ -147,16 +147,16 @@
               <div class="model-picker-wrapper">
                 <label for="ai-model-select">انتخاب موتور هوش مصنوعی:</label>
                 <select id="ai-model-select" class="glass-select model-dropdown">
-                  <optgroup label="🟢 مدل‌های پایه (قابل استفاده برای همه)">
+                  <optgroup id="base-models-group" label="🟢 مدل‌های پایه (قابل استفاده برای همه)">
                     <option value="deepseek">🟢 DeepSeek Chat (سریع و دقیق)</option>
                     <option value="openai">🟢 GPT-4o Mini (پرسرعت)</option>
-                    <option value="mistral">🟢 Llama 3.3 / Mistral (عمومی)</option>
                     <option value="qwen">🟢 Qwen 2.5 Coder (کدنویسی)</option>
+                    <option value="mistral">🟢 Llama 3.3 / Mistral (عمومی)</option>
                   </optgroup>
-                  <optgroup label="⭐ مدل‌های پیشرفته (مخصوص کاربران پرو)">
-                    <option value="claude">⭐ Claude 3.5 Sonnet (بهترین در طراحی وب)</option>
-                    <option value="gpt4o-pro">⭐ GPT-4o (پرچمدار اصلی)</option>
-                    <option value="deepseek-r1">⭐ DeepSeek-R1 (غول استدلال و ریاضی)</option>
+                  <optgroup id="pro-models-group" label="⭐ مدل‌های پیشرفته (مخصوص کاربران پرو)">
+                    <option value="claude" data-pro="true">⭐ Claude 3.5 Sonnet (بهترین در طراحی وب)</option>
+                    <option value="gpt4o-pro" data-pro="true">⭐ GPT-4o (پرچمدار اصلی)</option>
+                    <option value="deepseek-r1" data-pro="true">⭐ DeepSeek-R1 (غول استدلال و منطق)</option>
                   </optgroup>
                 </select>
               </div>
@@ -222,7 +222,7 @@
           <div class="detail-row"><span>وضعیت حساب:</span> <strong class="badge-active" id="prof-status">فعال</strong></div>
           <div class="detail-row"><span>اعتبار باقی‌مانده:</span> <strong id="prof-credit">۱۵</strong></div>
           <div class="detail-row"><span>دسترسی به مدل‌های ⭐ پرو:</span> <strong id="prof-access-text" style="color:var(--text-muted)">غیرفعال</strong></div>
-          <div class="detail-row"><span>سطح کاربری:</span> <strong id="prof-role">کاربر عادی</strong></div>
+          <div class="detail-row"><span>سطح دسترسی:</span> <strong id="prof-role">کاربر عادی</strong></div>
         </div>
       </div>
     </section>
@@ -297,9 +297,9 @@
                   <th>نام</th>
                   <th>ایمیل</th>
                   <th>موجودی اعتبار</th>
-                  <th>نوع اشتراک</th>
+                  <th>عملیات اشتراک پرو ⭐</th>
                   <th>وضعیت</th>
-                  <th>عملیات</th>
+                  <th>عملیات دیگر</th>
                 </tr>
               </thead>
               <tbody id="users-table-body"></tbody>
