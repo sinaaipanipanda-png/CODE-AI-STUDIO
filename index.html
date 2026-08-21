@@ -13,10 +13,10 @@
   <!-- آیکون‌های FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
-  <!-- کتابخانه رسمی هوش مصنوعی بین‌المللی Puter (بدون فیلتر و بدون نیاز به کلید) -->
+  <!-- کتابخانه رسمی هوش مصنوعی خارجی و بدون فیلتر Puter.js -->
   <script src="https://js.puter.com/v2/"></script>
   
-  <!-- اسکریپت رسمی ورود مستقیم گوگل -->
+  <!-- اسکریپت رسمی ورود گوگل -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   
   <link rel="stylesheet" href="style.css">
@@ -28,6 +28,20 @@
     <div class="blob blob-1"></div>
     <div class="blob blob-2"></div>
     <div class="blob blob-3"></div>
+  </div>
+
+  <!-- بنر تبلیغاتی شیشه‌ای بالای سایت -->
+  <div id="top-ad-banner" class="top-ad-banner glass-card hidden">
+    <a id="ad-link" href="#" target="_blank" class="ad-link-wrapper">
+      <img id="ad-img" src="" alt="تبلیغات" class="ad-img hidden">
+      <div class="ad-text-box">
+        <span class="ad-badge"><i class="fa-solid fa-bullhorn"></i> تبلیغات</span>
+        <strong id="ad-title">عنوان تبلیغ</strong>
+        <p id="ad-desc">توضیحات تبلیغ</p>
+      </div>
+      <span class="ad-action-btn"><i class="fa-solid fa-arrow-left"></i> مشاهده</span>
+    </a>
+    <button id="close-ad-btn" class="close-ad-btn" title="بستن"><i class="fa-solid fa-xmark"></i></button>
   </div>
 
   <!-- نوبار و هدر سایت -->
@@ -67,22 +81,22 @@
   <!-- بخش اصلی برنامه -->
   <main class="main-container">
 
-    <!-- ۱. بخش ورود رسمی گوگل و ورود با حساب کاربری -->
+    <!-- ۱. بخش ورود رسمی گوگل و حساب کاربری -->
     <section id="auth-section" class="page-section glass-card">
       <div id="login-box" class="auth-box">
         <div class="auth-brand">
           <h2 id="auth-site-title">CODE AI STUDIO</h2>
-          <p>ثبت‌نام و ورود سریع با دریافت ۱۵ اعتبار هدیه</p>
+          <p>ثبت‌نام و ورود سریع با دریافت ۱۵ اعتبار اولیه</p>
         </div>
 
-        <!-- دکمه رسمی ثبت‌نام و ورود با گوگل -->
+        <!-- دکمه ورود گوگل -->
         <div id="google-btn-container" class="google-wrapper"></div>
 
         <div class="auth-divider">
           <span>یا ورود به حساب‌های از قبل ثبت‌شده</span>
         </div>
 
-        <!-- فرم ورود عمومی با ایمیل و پسورد -->
+        <!-- فرم ورود مستقیم ایمیل و پسورد -->
         <form id="login-form">
           <div class="input-group">
             <i class="fa-solid fa-envelope"></i>
@@ -129,19 +143,19 @@
             <div class="ai-avatar"><i class="fa-solid fa-robot"></i></div>
             <div>
               <h3 id="ai-assistant-title">دستیار فوق هوشمند CODE AI STUDIO</h3>
-              <small id="ai-active-model-badge">مدل فعال: Claude 3.5 Sonnet | هر پیام = ۳ اعتبار</small>
+              <small id="ai-current-model-tag">مدل فعال: Claude 3.5 Sonnet / DeepSeek | هر پیام = ۳ اعتبار</small>
             </div>
           </div>
         </div>
         
         <div class="chat-messages" id="ai-chat-box">
           <div class="msg bot-msg">
-            سلام! چه سایتی یا چه کدی برات بنویسم؟ ایده، امکانات یا زبان مد نظرت رو بگو تا به بهترین شکل برات کد بزنم!
+            سلام! چه کدی یا چه سایتی برات بنویسم؟ ایده، امکانات یا زبان مد نظرت رو بگو تا کامل، تمیز و حرفه‌ای برات کدنویسی کنم!
           </div>
         </div>
 
         <div class="chat-input-box">
-          <textarea id="ai-prompt-input" rows="2" placeholder="توضیح دهید چه کدی می‌خواهید (مثلاً: یک ماشین حساب شیک با جاوااسکریپت)..."></textarea>
+          <textarea id="ai-prompt-input" rows="2" placeholder="توضیح دهید چه کدی می‌خواهید (مثلاً: یک صفحه لندینگ مدرن ریسپانسیو)..."></textarea>
           <button id="send-ai-btn" class="send-btn"><i class="fa-solid fa-paper-plane"></i></button>
         </div>
       </div>
@@ -185,8 +199,8 @@
         <div class="prof-details">
           <div class="detail-row"><span>وضعیت حساب:</span> <strong class="badge-active" id="prof-status">فعال</strong></div>
           <div class="detail-row"><span>اعتبار باقی‌مانده:</span> <strong id="prof-credit">۱۵</strong></div>
+          <div class="detail-row"><span>مدل اختصاصی AI شما:</span> <strong id="prof-model" style="color:var(--accent)">پیش‌فرض</strong></div>
           <div class="detail-row"><span>سطح دسترسی:</span> <strong id="prof-role">کاربر عادی</strong></div>
-          <div class="detail-row"><span>موتور هوش مصنوعی اختصاصی شما:</span> <strong id="prof-model" style="color:var(--accent)">Claude 3.5 Sonnet</strong></div>
         </div>
       </div>
     </section>
@@ -200,13 +214,14 @@
         </div>
 
         <div class="admin-tabs">
-          <button class="tab-btn active" data-tab="admin-users"><i class="fa-solid fa-users"></i> مدیریت کاربران و تخصیص مدل</button>
-          <button class="tab-btn" data-tab="admin-chats"><i class="fa-solid fa-robot"></i> گفتگوهای AI</button>
+          <button class="tab-btn active" data-tab="admin-users"><i class="fa-solid fa-users"></i> کاربران و مدل‌ها</button>
+          <button class="tab-btn" data-tab="admin-chats"><i class="fa-solid fa-robot"></i> مشاهده کامل گفتگوها</button>
           <button class="tab-btn" data-tab="admin-tickets"><i class="fa-solid fa-ticket"></i> تیکت‌ها</button>
-          <button class="tab-btn" data-tab="admin-settings"><i class="fa-solid fa-gear"></i> تنظیمات سایت و هوش مصنوعی همگانی</button>
+          <button class="tab-btn" data-tab="admin-ads"><i class="fa-solid fa-rectangle-ad"></i> مدیریت بنر تبلیغاتی</button>
+          <button class="tab-btn" data-tab="admin-settings"><i class="fa-solid fa-gear"></i> تنظیمات سایت و AI</button>
         </div>
 
-        <!-- تب لیست کاربران و تنظیم مدل اختصاصی برای هر کاربر -->
+        <!-- تب لیست کاربران و اختصاص مدل هوش مصنوعی -->
         <div id="admin-users" class="tab-content active">
           
           <div class="glass-card add-user-box">
@@ -239,18 +254,6 @@
                     <option value="admin">مدیر (Admin)</option>
                   </select>
                 </div>
-                <div class="input-group">
-                  <label>هوش مصنوعی اختصاصی این کاربر:</label>
-                  <select id="admin-new-model" class="glass-select">
-                    <option value="default">پیش‌فرض همگانی سایت</option>
-                    <option value="claude-3-5-sonnet">Claude 3.5 Sonnet (بسیار قوی)</option>
-                    <option value="gpt-4o">GPT-4o (غول برنامه‌نویسی)</option>
-                    <option value="deepseek-chat">DeepSeek V3 (مخصوص کد)</option>
-                    <option value="deepseek-reasoner">DeepSeek R1 (استدلالی)</option>
-                    <option value="gpt-4o-mini">GPT-4o Mini (سریع و سبک)</option>
-                    <option value="mistral-large-latest">Mistral Large</option>
-                  </select>
-                </div>
               </div>
               <button type="submit" class="btn-success" style="margin-top: 1rem;">
                 <i class="fa-solid fa-check"></i> ایجاد و فعال‌سازی مستقیم کاربر
@@ -264,10 +267,9 @@
                 <tr>
                   <th>نام</th>
                   <th>ایمیل</th>
-                  <th>اعتبار</th>
+                  <th>موجودی اعتبار</th>
                   <th>مدل هوش مصنوعی این کاربر</th>
                   <th>وضعیت</th>
-                  <th>نقش</th>
                   <th>عملیات</th>
                 </tr>
               </thead>
@@ -276,7 +278,7 @@
           </div>
         </div>
 
-        <!-- تب لاگ گفتگوهای هوش مصنوعی -->
+        <!-- تب مشاهده کامل لاگ گفتگوهای هوش مصنوعی -->
         <div id="admin-chats" class="tab-content hidden">
           <div id="admin-ai-logs" class="logs-container"></div>
         </div>
@@ -286,23 +288,59 @@
           <div id="admin-ticket-list" class="tickets-list"></div>
         </div>
 
-        <!-- تب تنظیمات همگانی هوش مصنوعی و سایت -->
+        <!-- تب مدیریت بنر تبلیغاتی -->
+        <div id="admin-ads" class="tab-content hidden">
+          <div class="settings-box">
+            <h3><i class="fa-solid fa-rectangle-ad"></i> تنظیم بنر تبلیغاتی بالای سایت</h3>
+            <p class="subtitle" style="text-align: right;">این تبلیغ در بالای تمامی صفحات نمایش داده می‌شود و با کلیک روی آن کاربر به لینک تعیین شده هدایت خواهد شد.</p>
+            
+            <div class="input-group">
+              <label>وضعیت نمایش تبلیغ:</label>
+              <select id="setting-ad-enabled" class="glass-select">
+                <option value="false">غیرفعال (مخفی)</option>
+                <option value="true">فعال (نمایش در بالای سایت)</option>
+              </select>
+            </div>
+
+            <div class="input-group">
+              <label>عنوان تبلیغ:</label>
+              <input type="text" id="setting-ad-title" placeholder="مثال: طراحی وب‌سایت با تخفیف ویژه!">
+            </div>
+
+            <div class="input-group">
+              <label>توضیحات کوتاه تبلیغ:</label>
+              <input type="text" id="setting-ad-desc" placeholder="مثال: برای سفارش طراحی سایت با پشتیبانی ۲۴ ساعته کلیک کنید.">
+            </div>
+
+            <div class="input-group">
+              <label>لینک مقصد (آدرس سایتی که با کلیک باز شود):</label>
+              <input type="url" id="setting-ad-url" placeholder="https://example.com">
+            </div>
+
+            <div class="input-group">
+              <label>لینک مستقیم تصویر بنر (اختیاری):</label>
+              <input type="url" id="setting-ad-img" placeholder="https://example.com/ad-banner.png">
+            </div>
+
+            <button id="save-ad-btn" class="btn-primary"><i class="fa-solid fa-floppy-disk"></i> ذخیره تنظیمات تبلیغ</button>
+          </div>
+        </div>
+
+        <!-- تب تنظیمات ظاهر سایت و مدل پیش‌فرض هوش مصنوعی -->
         <div id="admin-settings" class="tab-content hidden">
           <div class="settings-box">
             
             <div class="api-highlight-box">
-              <h3><i class="fa-solid fa-brain"></i> انتخاب هوش مصنوعی همگانی (برای تمام کاربران)</h3>
-              <p class="subtitle" style="text-align: right; margin-bottom: 1rem;">مشخص کنید به صورت عمومی کدام هوش مصنوعی به کاربران پاسخ دهد:</p>
+              <h3><i class="fa-solid fa-brain"></i> انتخاب مدل پیش‌فرض هوش مصنوعی (برای همه)</h3>
+              <p class="subtitle" style="text-align: right; margin-bottom: 1rem;">مدلی که برای تمام کاربران عادی به صورت عمومی اجرا خواهد شد:</p>
               
               <div class="input-group">
-                <label>مدل پیش‌فرض همگانی:</label>
-                <select id="setting-default-ai-model" class="glass-select">
-                  <option value="claude-3-5-sonnet">Claude 3.5 Sonnet (پیشنهادی - بهترین در کدنویسی)</option>
-                  <option value="gpt-4o">GPT-4o (مدل پرچمدار OpenAI)</option>
-                  <option value="deepseek-chat">DeepSeek Chat V3 (مخصوص کد و الگوریتم)</option>
-                  <option value="deepseek-reasoner">DeepSeek Reasoner R1 (استدلال عمیق)</option>
+                <label>مدل عمومی پیش‌فرض سیستم:</label>
+                <select id="setting-global-ai-model" class="glass-select">
+                  <option value="claude-3-5-sonnet">Claude 3.5 Sonnet (فوق‌العاده قوی و بدون فیلتر) ⭐ پیشنهادی</option>
+                  <option value="gpt-4o">GPT-4o (قدرتمندترین مدل OpenAI)</option>
+                  <option value="deepseek-chat">DeepSeek Chat (تخصصی کدنویسی)</option>
                   <option value="gpt-4o-mini">GPT-4o Mini (پرسرعت)</option>
-                  <option value="mistral-large-latest">Mistral Large</option>
                 </select>
               </div>
             </div>
